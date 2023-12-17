@@ -131,3 +131,79 @@ The tokenization is done with the following mealy machine:
 | String_sha             | "p"   | String_shap            |                           |
 | String_shap            | "e"   | String_shape           |                           |
 | String_shape           | "s"   | Start                  | Attribut_shapes           |
+
+### Parsing
+
+The tokens are parsed into a dynamic array of simple polygons. For this purpose I will use an extended kind of mealy machine that is able to parse consecutive number tokens (Zero and One) directly into numbers, instead of having a path for every possible number.
+
+| State       | Input  | Next state   | Output |
+| ----------- | ------ | ------------ | ------ |
+| i16         | +      | i16_Digit_0  |        |
+| i16         | -      | i16_Digit_0  |        |
+| i16         | {0, 1} | i16_Digit_1  |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_1  |        |
+| i16_Digit_1 | {0, 1} | i16_Digit_2  |        |
+| i16_Digit_2 | {0, 1} | i16_Digit_3  |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_4  |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_5  |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_6  |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_7  |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_8  |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_9  |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_10 |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_11 |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_12 |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_13 |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_14 |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_15 |        |
+| i16_Digit_0 | {0, 1} | i16_Digit_15 |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
+|             |        |              |        |
