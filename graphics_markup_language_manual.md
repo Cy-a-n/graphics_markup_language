@@ -6,14 +6,15 @@ The outer bounds of the two dimensional coordinate system of the graphics markup
 
 ### Basic drawable elements
 
-| Name    | Parameter                                                               | Parameter as regular expression                                                                                                                                                                                                                                                                                                                                                         | Description                                                                            |
-| ------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| i16     | value                                                                   | `=[+-]?[01]{1,15}`                                                                                                                                                                                                                                                                                                                                                                      | A value between $-2^{16}+1=-32767$ and $2^{16}-1=32767$ in binary. Default value is 0. |
-| u8      | value                                                                   | `=[01]{1,8}`                                                                                                                                                                                                                                                                                                                                                                            | A value between $0$ and $2^{8}-1=255$ in binary. Default value is 0.                   |
-| Color   | red, green, blue : u8                                                   | `{red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?}`                                                                                                                                                                                                                                                                                                                                 |
-| Point   | x, y : i16                                                              | `{x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?}`                                                                                                                                                                                                                                                                                                                                            |
-| Polygon | width: i16, border_color: Color, fill_color : Color, vertices : Point\* | `{width(=[+-]?[01]{1,15})?border_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?fill_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?vertices(=\[({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})*\])?}`                                                                                                                                                         |
-| Main    | visible_extent : Point, background_color : Color, shapes : Polygon\*    | `^{visible_extent({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})?background_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?shapes(=\[({width(=[+-]?[01]{1,15})?border_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?fill_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?vertices(=\[({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})*\])?})*\])?}$` |
+| Name    | Parameter                                                                                                | Parameter as regular expression                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Description                                                                            |
+| ------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| i16     | value                                                                                                    | `=[+-]?[01]{1,15}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | A value between $-2^{16}+1=-32767$ and $2^{16}-1=32767$ in binary. Default value is 0. |
+| u8      | value                                                                                                    | `=[01]{1,8}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | A value between $0$ and $2^{8}-1=255$ in binary. Default value is 0.                   |
+| Color   | red, green, blue : u8                                                                                    | `{red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Point   | x, y : i16                                                                                               | `{x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Polygon | position : Point, rotation : u8, width: i16, border_color: Color, fill_color : Color, vertices : Point\* | `{position({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})?rotation(=[01]{1,8})?width(=[+-]?[01]{1,15})?border_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?fill_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?vertices(\[({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})*\])?}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Group   | postion : Point, rotation : u8, shapes : Polygon\*                                                       | `{position({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})?rotation(=[01]{1,8})?shapes(\[({position({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})?rotation(=[01]{1,8})?width(=[+-]?[01]{1,15})?border_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?fill_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?vertices(\[({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})*\])?})*\])?}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Main    | visible_extent : Point, background_color : Color, shapes : (Polygon \| Group)\*                          | `^{visible_extent({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})?background_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?shapes(\[({position({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})?rotation(=[01]{1,8})?width(=[+-]?[01]{1,15})?border_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?fill_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?vertices(\[({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})*\])?}\|{position({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})?rotation(=[01]{1,8})?shapes(\[({position({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})?rotation(=[01]{1,8})?width(=[+-]?[01]{1,15})?border_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?fill_color({red(=[01]{1,8})?green(=[01]{1,8})?blue(=[01]{1,8})?})?vertices(\[({x(=[+-]?[01]{1,15})?y(=[+-]?[01]{1,15})?})*\])?})*\])?})*\])?}$` |
 
 ### Tokenization
 
@@ -45,6 +46,21 @@ The tokenization is done with the following mealy machine:
 | String_blu             | "e"   | Start                  | Attribut_blue             |
 | Start                  | "x"   | Start                  | Attribut_x                |
 | Start                  | "y"   | Start                  | Attribut_y                |
+| Start                  | "p"   | String_p               |                           |
+| String_p               | "o"   | String_po              |                           |
+| String_po              | "s"   | String_pos             |                           |
+| String_pos             | "i"   | String_posi            |                           |
+| String_posi            | "t"   | String_posit           |                           |
+| String_posit           | "i"   | String_positi          |                           |
+| String_positi          | "o"   | String_positio         |                           |
+| String_positio         | "n"   | Start                  | Attribut_position         |
+| Start                  | "r"   | String_r               |                           |
+| String_r               | "o"   | String_ro              |                           |
+| String_ro              | "t"   | String_rot             |                           |
+| String_rota            | "t"   | String_rotat           |                           |
+| String_rotat           | "i"   | String_rotati          |                           |
+| String_rotati          | "o"   | String_rotatio         |                           |
+| String_rotatio         | "n"   | Start                  | Attribut_rotation         |
 | Start                  | "w"   | String_w               |                           |
 | String_w               | "i"   | String_wi              |                           |
 | String_wi              | "d"   | String_wid             |                           |
@@ -115,68 +131,3 @@ The tokenization is done with the following mealy machine:
 | String_sha             | "p"   | String_shap            |                           |
 | String_shap            | "e"   | String_shape           |                           |
 | String_shape           | "s"   | Start                  | Attribut_shapes           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
-|                        |       |                        |                           |
