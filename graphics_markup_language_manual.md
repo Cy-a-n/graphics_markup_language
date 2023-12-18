@@ -54,8 +54,6 @@ The tokenization is done with the following mealy machine:
 | String_posit           | "i"   | String_positi          |                           |
 | String_positi          | "o"   | String_positio         |                           |
 | String_positio         | "n"   | Start                  | Attribut_position         |
-| Start                  | "r"   | String_r               |                           |
-| String_r               | "o"   | String_ro              |                           |
 | String_ro              | "t"   | String_rot             |                           |
 | String_rota            | "t"   | String_rotat           |                           |
 | String_rotat           | "i"   | String_rotati          |                           |
@@ -96,8 +94,6 @@ The tokenization is done with the following mealy machine:
 | String_verti           | "c"   | String_vertic          |                           |
 | String_vertic          | "e"   | String_vertice         |                           |
 | String_vertice         | "s"   | Start                  | Attribut_vertices         |
-| Start                  | "v"   | String_v               |                           |
-| String_v               | "i"   | String_vi              |                           |
 | String_vi              | "s"   | String_vis             |                           |
 | String_vis             | "i"   | String_visi            |                           |
 | String_visi            | "b"   | String_visib           |                           |
@@ -110,7 +106,6 @@ The tokenization is done with the following mealy machine:
 | String_visible_ext     | "e"   | String_visible_exte    |                           |
 | String_visible_exte    | "n"   | String_visible_exten   |                           |
 | String_visible_exten   | "t"   | Start                  | Attribut_visible_extent   |
-| String_b               | "a"   | String_ba              |                           |
 | String_ba              | "c"   | String_bac             |                           |
 | String_bac             | "k"   | String_back            |                           |
 | String_back            | "g"   | String_backg           |                           |
