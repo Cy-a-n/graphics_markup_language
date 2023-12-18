@@ -54,6 +54,7 @@ The tokenization is done with the following mealy machine:
 | String_posit           | "i"   | String_positi          |                           |
 | String_positi          | "o"   | String_positio         |                           |
 | String_positio         | "n"   | Start                  | Attribut_position         |
+| String_r               | "o"   | String_ro              |                           |
 | String_ro              | "t"   | String_rot             |                           |
 | String_rota            | "t"   | String_rotat           |                           |
 | String_rotat           | "i"   | String_rotati          |                           |
