@@ -1,31 +1,32 @@
-pub fn tokenize(source_code: &str) {}
+use crate::token::Token;
+use crate::token::Token::*;
+use State::*;
 
-enum Token {
-    PrimitiveValue,
-    NegativValue,
-    PositivValue,
-    Zero,
-    One,
-    StructStart,
-    StructEnd,
-    ArrayStart,
-    ArrayEnd,
-    Attribut_red,
-    Attribut_green,
-    Attribut_blue,
-    Attribut_x,
-    Attribut_y,
-    Attribut_position,
-    Attribut_rotation,
-    Attribut_width,
-    Attribut_border_color,
-    Attribut_fill_color,
-    Attribut_vertices,
-    Attribut_visible_extent,
-    Attribut_background_color,
-    Attribut_shapes,
+pub fn tokenize(source_code: &str) -> Vec<Token> {
+    let mut tokens: Vec<Token> = vec![];
+    let mut current_state = Start;
+
+    for input in source_code.chars() {
+        let (next_state, output) = current_state.next_state(&input);
+
+        if let Err(expected) = next_state {
+            panic!(
+                "Lexer error: Expected {:?} in state {:?}, got {}",
+                expected, current_state, input
+            )
+        }
+
+        if let Some(token) = output {
+            tokens.push(token);
+        }
+
+        current_state = next_state;
+    }
+
+    tokens
 }
 
+#[derive(Debug)]
 enum State {
     Start,
     String_r,
@@ -116,11 +117,9 @@ enum State {
 
 use std::f32::consts::E;
 
-use State::*;
-use Token::*;
 impl State {
-    fn next_state(current_state: State, input: char) -> (State, Option<Token>) {
-        match current_state {
+    fn next_state(&self, input: &char) -> (State, Option<Token>) {
+        match self {
             Err(_) => {
                 panic!("The `next_state`-method should never be called on State::Err")
             }
@@ -128,7 +127,7 @@ impl State {
                 ' ' => (Start, None),
                 '=' => (Start, Some(PrimitiveValue)),
                 '-' => (Start, Some(NegativValue)),
-                '+' => (Start, Some(PositivValue)),
+                '+' => (Start, Some(PositiveValue)),
                 '0' => (Start, Some(Zero)),
                 '1' => (Start, Some(One)),
                 '{' => (Start, Some(StructStart)),
@@ -220,73 +219,275 @@ impl State {
                 'n' => (Start, Some(Attribut_position)),
                 _ => (Err(vec!['n']), None),
             },
-            String_ro => todo!(),
-            String_rot => todo!(),
-            String_rota => todo!(),
-            String_rotat => todo!(),
-            String_rotati => todo!(),
-            String_rotatio => todo!(),
-            String_w => todo!(),
-            String_wi => todo!(),
-            String_wid => todo!(),
-            String_widt => todo!(),
-            String_bo => todo!(),
-            String_bor => todo!(),
-            String_bord => todo!(),
-            String_borde => todo!(),
-            String_border => todo!(),
-            String_border_ => todo!(),
-            String_border_c => todo!(),
-            String_border_co => todo!(),
-            String_border_col => todo!(),
-            String_border_colo => todo!(),
-            String_f => todo!(),
-            String_fi => todo!(),
-            String_fil => todo!(),
-            String_fill => todo!(),
-            String_fill_ => todo!(),
-            String_fill_c => todo!(),
-            String_fill_co => todo!(),
-            String_fill_col => todo!(),
-            String_fill_colo => todo!(),
-            String_v => todo!(),
-            String_ve => todo!(),
-            String_ver => todo!(),
-            String_vert => todo!(),
-            String_verti => todo!(),
-            String_vertic => todo!(),
-            String_vertice => todo!(),
-            String_vi => todo!(),
-            String_vis => todo!(),
-            String_visi => todo!(),
-            String_visib => todo!(),
-            String_visibl => todo!(),
-            String_visible => todo!(),
-            String_visible_ => todo!(),
-            String_visible_e => todo!(),
-            String_visible_ex => todo!(),
-            String_visible_ext => todo!(),
-            String_visible_exte => todo!(),
-            String_visible_exten => todo!(),
-            String_ba => todo!(),
-            String_bac => todo!(),
-            String_back => todo!(),
-            String_backg => todo!(),
-            String_backgr => todo!(),
-            String_backgro => todo!(),
-            String_backgrou => todo!(),
-            String_backgroun => todo!(),
-            String_background => todo!(),
-            String_background_ => todo!(),
-            String_background_c => todo!(),
-            String_background_co => todo!(),
-            String_background_col => todo!(),
-            String_background_colo => todo!(),
-            String_s => todo!(),
-            String_sh => todo!(),
-            String_sha => todo!(),
-            String_shap => todo!(),
-            String_shape => todo!(),
+            String_ro => match input {
+                't' => (String_rot, None),
+                _ => (Err(vec!['t']), None),
+            },
+            String_rot => match input {
+                'a' => (String_rota, None),
+                _ => (Err(vec!['a']), None),
+            },
+            String_rota => match input {
+                't' => (String_rotat, None),
+                _ => (Err(vec!['t']), None),
+            },
+            String_rotat => match input {
+                'i' => (String_rotati, None),
+                _ => (Err(vec!['i']), None),
+            },
+            String_rotati => match input {
+                'o' => (String_rotatio, None),
+                _ => (Err(vec!['o']), None),
+            },
+            String_rotatio => match input {
+                'n' => (Start, Some(Attribut_rotation)),
+                _ => (Err(vec!['n']), None),
+            },
+            String_w => match input {
+                'i' => (String_wi, None),
+                _ => (Err(vec!['i']), None),
+            },
+            String_wi => match input {
+                'd' => (String_wid, None),
+                _ => (Err(vec!['d']), None),
+            },
+            String_wid => match input {
+                't' => (String_widt, None),
+                _ => (Err(vec!['t']), None),
+            },
+            String_widt => match input {
+                'h' => (Start, Some(Attribut_width)),
+                _ => (Err(vec!['h']), None),
+            },
+            String_bo => match input {
+                'r' => (String_bor, None),
+                _ => (Err(vec!['r']), None),
+            },
+            String_bor => match input {
+                'd' => (String_bord, None),
+                _ => (Err(vec!['d']), None),
+            },
+            String_bord => match input {
+                'e' => (String_borde, None),
+                _ => (Err(vec!['e']), None),
+            },
+            String_borde => match input {
+                'r' => (String_border, None),
+                _ => (Err(vec!['r']), None),
+            },
+            String_border => match input {
+                '_' => (String_border_, None),
+                _ => (Err(vec!['_']), None),
+            },
+            String_border_ => match input {
+                'c' => (String_border_c, None),
+                _ => (Err(vec!['c']), None),
+            },
+            String_border_c => match input {
+                'o' => (String_border_co, None),
+                _ => (Err(vec!['o']), None),
+            },
+            String_border_co => match input {
+                'l' => (String_border_col, None),
+                _ => (Err(vec!['l']), None),
+            },
+            String_border_col => match input {
+                'o' => (String_border_colo, None),
+                _ => (Err(vec!['o']), None),
+            },
+            String_border_colo => match input {
+                'r' => (Start, Some(Attribut_border_color)),
+                _ => (Err(vec!['r']), None),
+            },
+            String_f => match input {
+                'i' => (String_fi, None),
+                _ => (Err(vec!['i']), None),
+            },
+            String_fi => match input {
+                'l' => (String_fil, None),
+                _ => (Err(vec!['l']), None),
+            },
+            String_fil => match input {
+                'l' => (String_fill, None),
+                _ => (Err(vec!['l']), None),
+            },
+            String_fill => match input {
+                '_' => (String_fill_, None),
+                _ => (Err(vec!['_']), None),
+            },
+            String_fill_ => match input {
+                'c' => (String_fill_c, None),
+                _ => (Err(vec!['c']), None),
+            },
+            String_fill_c => match input {
+                'o' => (String_fill_co, None),
+                _ => (Err(vec!['o']), None),
+            },
+            String_fill_co => match input {
+                'l' => (String_fill_col, None),
+                _ => (Err(vec!['l']), None),
+            },
+            String_fill_col => match input {
+                'o' => (String_fill_colo, None),
+                _ => (Err(vec!['o']), None),
+            },
+            String_fill_colo => match input {
+                'r' => (Start, Some(Attribut_fill_color)),
+                _ => (Err(vec!['r']), None),
+            },
+            String_v => match input {
+                'e' => (String_ve, None),
+                'i' => (String_vi, None),
+                _ => (Err(vec!['e', 'i']), None),
+            },
+            String_ve => match input {
+                'r' => (String_ver, None),
+                _ => (Err(vec!['r']), None),
+            },
+            String_ver => match input {
+                't' => (String_vert, None),
+                _ => (Err(vec!['t']), None),
+            },
+            String_vert => match input {
+                'i' => (String_verti, None),
+                _ => (Err(vec!['i']), None),
+            },
+            String_verti => match input {
+                'c' => (String_vertic, None),
+                _ => (Err(vec!['c']), None),
+            },
+            String_vertic => match input {
+                'e' => (String_vertice, None),
+                _ => (Err(vec!['e']), None),
+            },
+            String_vertice => match input {
+                's' => (Start, Some(Attribut_vertices)),
+                _ => (Err(vec!['s']), None),
+            },
+            String_vi => match input {
+                's' => (String_vis, None),
+                _ => (Err(vec!['s']), None),
+            },
+            String_vis => match input {
+                'i' => (String_visi, None),
+                _ => (Err(vec!['i']), None),
+            },
+            String_visi => match input {
+                'b' => (String_visib, None),
+                _ => (Err(vec!['b']), None),
+            },
+            String_visib => match input {
+                'l' => (String_visibl, None),
+                _ => (Err(vec!['l']), None),
+            },
+            String_visibl => match input {
+                'e' => (String_visible, None),
+                _ => (Err(vec!['e']), None),
+            },
+            String_visible => match input {
+                '_' => (String_visible_, None),
+                _ => (Err(vec!['_']), None),
+            },
+            String_visible_ => match input {
+                'e' => (String_visible_e, None),
+                _ => (Err(vec!['e']), None),
+            },
+            String_visible_e => match input {
+                'x' => (String_visible_ex, None),
+                _ => (Err(vec!['x']), None),
+            },
+            String_visible_ex => match input {
+                't' => (String_visible_ext, None),
+                _ => (Err(vec!['t']), None),
+            },
+            String_visible_ext => match input {
+                'e' => (String_visible_exte, None),
+                _ => (Err(vec!['e']), None),
+            },
+            String_visible_exte => match input {
+                'n' => (String_visible_exten, None),
+                _ => (Err(vec!['n']), None),
+            },
+            String_visible_exten => match input {
+                't' => (Start, Some(Attribut_visible_extent)),
+                _ => (Err(vec!['t']), None),
+            },
+            String_ba => match input {
+                'c' => (String_bac, None),
+                _ => (Err(vec!['c']), None),
+            },
+            String_bac => match input {
+                'k' => (String_back, None),
+                _ => (Err(vec!['k']), None),
+            },
+            String_back => match input {
+                'g' => (String_backg, None),
+                _ => (Err(vec!['g']), None),
+            },
+            String_backg => match input {
+                'r' => (String_backgr, None),
+                _ => (Err(vec!['r']), None),
+            },
+            String_backgr => match input {
+                'o' => (String_backgro, None),
+                _ => (Err(vec!['o']), None),
+            },
+            String_backgro => match input {
+                'u' => (String_backgrou, None),
+                _ => (Err(vec!['u']), None),
+            },
+            String_backgrou => match input {
+                'n' => (String_backgroun, None),
+                _ => (Err(vec!['n']), None),
+            },
+            String_backgroun => match input {
+                'd' => (String_background, None),
+                _ => (Err(vec!['d']), None),
+            },
+            String_background => match input {
+                '_' => (String_background_, None),
+                _ => (Err(vec!['c']), None),
+            },
+            String_background_ => match input {
+                'c' => (String_background_c, None),
+                _ => (Err(vec!['c']), None),
+            },
+            String_background_c => match input {
+                'o' => (String_background_co, None),
+                _ => (Err(vec!['o']), None),
+            },
+            String_background_co => match input {
+                'l' => (String_background_col, None),
+                _ => (Err(vec!['l']), None),
+            },
+            String_background_col => match input {
+                'o' => (String_background_colo, None),
+                _ => (Err(vec!['o']), None),
+            },
+            String_background_colo => match input {
+                'r' => (Start, Some(Attribut_background_color)),
+                _ => (Err(vec!['r']), None),
+            },
+            String_s => match input {
+                'h' => (String_sh, None),
+                _ => (Err(vec!['h']), None),
+            },
+            String_sh => match input {
+                'a' => (String_sha, None),
+                _ => (Err(vec!['a']), None),
+            },
+            String_sha => match input {
+                'p' => (String_shap, None),
+                _ => (Err(vec!['p']), None),
+            },
+            String_shap => match input {
+                'e' => (String_shape, None),
+                _ => (Err(vec!['e']), None),
+            },
+            String_shape => match input {
+                's' => (Start, Some(Attribut_shapes)),
+                _ => (Err(vec!['s']), None),
+            },
         }
     }
 }
