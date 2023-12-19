@@ -11,7 +11,7 @@ pub fn tokenize(source_code: &str) -> Vec<Token> {
 
         if let Err(expected) = next_state {
             panic!(
-                "Lexer error: Expected {:?} in state {:?}, got {}",
+                "Lexer error: Expected {:?} in state {:?}, got {}.",
                 expected, current_state, input
             )
         }
@@ -137,8 +137,8 @@ impl State {
                 'r' => (String_r, None),
                 'g' => (String_g, None),
                 'b' => (String_b, None),
-                'x' => (Start, Some(Attribut_x)),
-                'y' => (Start, Some(Attribut_y)),
+                'x' => (Start, Some(AttributX)),
+                'y' => (Start, Some(AttributY)),
                 'p' => (String_p, None),
                 'w' => (String_w, None),
                 'f' => (String_f, None),
@@ -158,7 +158,7 @@ impl State {
                 _ => (Err(vec!['e', 'o']), None),
             },
             String_re => match input {
-                'd' => (Start, Some(Attribut_red)),
+                'd' => (Start, Some(AttributRed)),
                 _ => (Err(vec!['d']), None),
             },
             String_g => match input {
@@ -174,7 +174,7 @@ impl State {
                 _ => (Err(vec!['e']), None),
             },
             String_gree => match input {
-                'n' => (Start, Some(Attribut_green)),
+                'n' => (Start, Some(AttributGreen)),
                 _ => (Err(vec!['n']), None),
             },
             String_b => match input {
@@ -188,7 +188,7 @@ impl State {
                 _ => (Err(vec!['u']), None),
             },
             String_blu => match input {
-                'e' => (Start, Some(Attribut_blue)),
+                'e' => (Start, Some(AttributBlue)),
                 _ => (Err(vec!['e']), None),
             },
             String_p => match input {
@@ -216,7 +216,7 @@ impl State {
                 _ => (Err(vec!['o']), None),
             },
             String_positio => match input {
-                'n' => (Start, Some(Attribut_position)),
+                'n' => (Start, Some(AttributPosition)),
                 _ => (Err(vec!['n']), None),
             },
             String_ro => match input {
@@ -240,7 +240,7 @@ impl State {
                 _ => (Err(vec!['o']), None),
             },
             String_rotatio => match input {
-                'n' => (Start, Some(Attribut_rotation)),
+                'n' => (Start, Some(AttributRotation)),
                 _ => (Err(vec!['n']), None),
             },
             String_w => match input {
@@ -256,7 +256,7 @@ impl State {
                 _ => (Err(vec!['t']), None),
             },
             String_widt => match input {
-                'h' => (Start, Some(Attribut_width)),
+                'h' => (Start, Some(AttributWidth)),
                 _ => (Err(vec!['h']), None),
             },
             String_bo => match input {
@@ -296,7 +296,7 @@ impl State {
                 _ => (Err(vec!['o']), None),
             },
             String_border_colo => match input {
-                'r' => (Start, Some(Attribut_border_color)),
+                'r' => (Start, Some(AttributBorderColor)),
                 _ => (Err(vec!['r']), None),
             },
             String_f => match input {
@@ -332,7 +332,7 @@ impl State {
                 _ => (Err(vec!['o']), None),
             },
             String_fill_colo => match input {
-                'r' => (Start, Some(Attribut_fill_color)),
+                'r' => (Start, Some(AttributFillColor)),
                 _ => (Err(vec!['r']), None),
             },
             String_v => match input {
@@ -361,7 +361,7 @@ impl State {
                 _ => (Err(vec!['e']), None),
             },
             String_vertice => match input {
-                's' => (Start, Some(Attribut_vertices)),
+                's' => (Start, Some(AttributVertices)),
                 _ => (Err(vec!['s']), None),
             },
             String_vi => match input {
@@ -409,7 +409,7 @@ impl State {
                 _ => (Err(vec!['n']), None),
             },
             String_visible_exten => match input {
-                't' => (Start, Some(Attribut_visible_extent)),
+                't' => (Start, Some(AttributVisibleExtent)),
                 _ => (Err(vec!['t']), None),
             },
             String_ba => match input {
@@ -465,7 +465,7 @@ impl State {
                 _ => (Err(vec!['o']), None),
             },
             String_background_colo => match input {
-                'r' => (Start, Some(Attribut_background_color)),
+                'r' => (Start, Some(AttributBackgroundColor)),
                 _ => (Err(vec!['r']), None),
             },
             String_s => match input {
@@ -485,7 +485,7 @@ impl State {
                 _ => (Err(vec!['e']), None),
             },
             String_shape => match input {
-                's' => (Start, Some(Attribut_shapes)),
+                's' => (Start, Some(AttributShapes)),
                 _ => (Err(vec!['s']), None),
             },
         }
