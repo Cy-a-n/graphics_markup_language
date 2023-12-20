@@ -170,11 +170,15 @@ The tokens are parsed into a dynamic array of simple polygons. For this purpose 
 | MainShapesElementPositionX           | AttributY                | MainShapesElementPositionY           | MainShapesElementPositionXDefault        |
 | MainShapesElementPositionX           | PrimitiveValue           | MainShapesElementPositionXEnd        | ParseMainShapesElementPositionX          |
 | MainShapesElementPositionXEnd        | AttributY                | MainShapesElementPositionY           |                                          |
-| MainShapesElementPositionY           | AttributWidth            | MainShapesPolygonWidth               | MainShapesElementPositionYDefault        |
-| MainShapesElementPositionY           | AttributShapes           | MainShapesGroupShapes                | MainShapesElementPositionYDefault        |
+| MainShapesElementPositionY           | StructEnd                | MainShapesElementPositionEnd         | MainShapesElementPositionYDefault        |
 | MainShapesElementPositionY           | PrimitiveValue           | MainShapesElementPositionYEnd        | ParseMainShapesElementPositionY          |
-| MainShapesElementPositionYEnd        | AttributWidth            | MainShapesPolygonWidth               |                                          |
-| MainShapesElementPositionYEnd        | AttributShapes           | MainShapesGroupShapes                |                                          |
+| MainShapesElementPositionYEnd        | StructEnd                | MainShapesElementPositionEnd         |                                          |
+| MainShapesElementPositionEnd         | AttributRotation         | MainShapesElementRotation            |                                          |
+| MainShapesElementRotation            | AttributWidth            | MainShapesPolygonWidth               |                                          |
+| MainShapesElementRotation            | AttributShapes           | MainShapesGroupShapes                |                                          |
+| MainShapesElementRotation            | PrimitiveValue           | MainShapesElementRotationEnd         | ParseMainShapesElementRotation           |
+| MainShapesElementRotationEnd         | AttributWidth            | MainShapesPolygonWidth               |                                          |
+| MainShapesElementRotationEnd         | AttributShapes           | MainShapesGroupShapes                |                                          |
 | MainShapesPolygonWidth               | AttributBorderColor      | MainShapesPolygonBorderColor         | MainShapesPolygonWidthDefault            |
 | MainShapesPolygonWidth               | PrimitiveValue           | MainShapesPolygonWidthEnd            | ParseMainShapesPolygonWidth              |
 | MainShapesPolygonWidthEnd            | AttributBorderColor      | MainShapesPolygonBorderColor         |                                          |
@@ -191,7 +195,40 @@ The tokens are parsed into a dynamic array of simple polygons. For this purpose 
 | MainShapesPolygonBorderColorBlue     | PrimitiveValue           | MainShapesPolygonBorderColorBlueEnd  | ParseMainShapesPolygonBorderColorBlue    |
 | MainShapesPolygonBorderColorBlueEnd  | StructEnd                | MainShapesPolygonBorderColorEnd      |                                          |
 | MainShapesPolygonBorderColorEnd      | AttributFillColor        | MainShapesPolygonFillColor           |                                          |
-| MainShapesPolygonFillColor           |                          |                                      |                                          |
+| MainShapesPolygonFillColor           | AttributVertices         | MainShapesPolygonVertices            | MainShapesPolygonFillColorDefault        |
+| MainShapesPolygonFillColor           | StructStart              | MainShapesPolygonFillColorStart      |                                          |
+| MainShapesPolygonFillColorStart      | AttributRed              | MainShapesPolygonFillColorRed        |                                          |
+| MainShapesPolygonFillColorRed        | AttributGreen            | MainShapesPolygonFillColorGreen      | MainShapesPolygonFillColorRedDefault     |
+| MainShapesPolygonFillColorRed        | PrimitiveValue           | MainShapesPolygonFillColorRedEnd     | ParseMainShapesPolygonFillColorRed       |
+| MainShapesPolygonFillColorRedEnd     | AttributGreen            | MainShapesPolygonFillColorGreen      |                                          |
+| MainShapesPolygonFillColorGreen      | AttributBlue             | MainShapesPolygonFillColorBlue       | MainShapesPolygonFillColorGreenDefault   |
+| MainShapesPolygonFillColorGreen      | PrimitiveValue           | MainShapesPolygonFillColorGreenEnd   | ParseMainShapesPolygonFillColorGreen     |
+| MainShapesPolygonFillColorGreenEnd   | AttributBlue             | MainShapesPolygonFillColorBlue       |                                          |
+| MainShapesPolygonFillColorBlue       | StructEnd                | MainShapesPolygonFillColorEnd        | MainShapesPolygonFillColorBlueDefault    |
+| MainShapesPolygonFillColorBlue       | PrimitiveValue           | MainShapesPolygonFillColorBlueEnd    | ParseMainShapesPolygonFillColorBlue      |
+| MainShapesPolygonFillColorBlueEnd    | StructEnd                | MainShapesPolygonFillColorEnd        |                                          |
+| MainShapesPolygonFillColorEnd        | AttributVertices         | MainShapesPolygonVertices            |                                          |
+| MainShapesPolygonVertices            | StructEnd                | MainShapesStart                      | MainShapesPolygonVerticesDefault         |
+| MainShapesPolygonVertices            | ArrayStart               | MainShapesPolygonVerticesStart       |                                          |
+| MainShapesPolygonVerticesStart       | ArrayEnd                 | MainShapesPolygonVerticesEnd         |                                          |
+| MainShapesPolygonVerticesStart       | StructStart              | MainShapesPolygonVerticesVertexStart |                                          |
+| MainShapesPolygonVerticesVertexStart | AttributX                | MainShapesPolygonVerticesVertexX     |                                          |
+| MainShapesPolygonVerticesVertexX     | AttributY                | MainShapesPolygonVerticesVertexY     | MainShapesPolygonVerticesVertexXDefault  |
+| MainShapesPolygonVerticesVertexX     | PrimitiveValue           | MainShapesPolygonVerticesVertexXEnd  | ParseMainShapesPolygonVerticesVertexX    |
+| MainShapesPolygonVerticesVertexXEnd  | AttributY                | MainShapesPolygonVerticesVertexY     |                                          |
+| MainShapesPolygonVerticesVertexY     | StructEnd                | MainShapesPolygonVerticesStart       | MainShapesPolygonVerticesVertexYDefault  |
+| MainShapesPolygonVerticesVertexY     | PrimitiveValue           | MainShapesPolygonVerticesVertexYEnd  | ParseMainShapesPolygonVerticesVertexY    |
+| MainShapesPolygonVerticesVertexYEnd  | StructEnd                | MainShapesPolygonVerticesStart       |                                          |
+| MainShapesPolygonVerticesEnd         | StructEnd                | MainShapesStart                      |                                          |
+| MainShapesGroupShapes                | StructEnd                | MainShapesStart                      | MainShapesGroupShapesDefault             |
+| MainShapesGroupShapes                | ArrayStart               |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
 |                                      |                          |                                      |                                          |
 |                                      |                          |                                      |                                          |
 |                                      |                          |                                      |                                          |
