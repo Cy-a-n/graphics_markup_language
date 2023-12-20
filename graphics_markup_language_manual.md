@@ -34,7 +34,7 @@ The tokenization is done with the following mealy machine:
 | Start                  | "]"   | Start                  | ArrayEnd                |
 | Start                  | "r"   | String_r               |                         |
 | String_r               | "e"   | String_re              |                         |
-| String_re              | "d"   | Start                  | AttributRed             |
+| String_re              | "d"   | Start                  | MainAttributRed         |
 | Start                  | "g"   | String_g               |                         |
 | String_g               | "r"   | String_gr              |                         |
 | String_gr              | "e"   | String_gre             |                         |
@@ -132,91 +132,97 @@ The tokenization is done with the following mealy machine:
 
 The tokens are parsed into a dynamic array of simple polygons. For this purpose I will use an extended kind of mealy machine that is able to parse consecutive number tokens (Zero and One) directly into numbers, instead of having a path for every possible number.
 
-| State                  | Input                 | Next state             | Output |
-| ---------------------- | --------------------- | ---------------------- | ------ |
-| Start                  | StructStart           | Main                   |        |
-| Main                   | AttributVisibleExtent | MainVisibleExtent      |        |
-| MainVisibleExtent      | StructStart           | MainVisibleExtentStart |        |
-| MainVisibleExtentStart | AttributX             | MainVisibleExtentX     |        |
-| MainVisibleExtentX     | PrimitiveValue        |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
-|                        |                       |                        |        |
+| State                                | Input                    | Next state                           | Output                                   |
+| ------------------------------------ | ------------------------ | ------------------------------------ | ---------------------------------------- |
+| Start                                | StructStart              | MainStart                            |                                          |
+| MainStart                            | AttributVisibleExtent    | MainVisibleExtent                    |                                          |
+| MainVisibleExtent                    | AttributBackgroundColor  | MainBackgroundColor                  | MainVisibleExtentDefault                 |
+| MainVisibleExtent                    | StructStart              | MainVisibleExtentStart               |                                          |
+| MainVisibleExtentStart               | AttributX                | MainVisibleExtentX                   |                                          |
+| MainVisibleExtentX                   | AttributY                | MainVisibleExtentY                   | MainVisibleExtentXDefault                |
+| MainVisibleExtentX                   | PrimitiveValue           | MainVisibleExtentXEnd                | ParseMainVisibleExtentX                  |
+| MainVisibleExtentXEnd                | AttributY                | MainVisibleExtentY                   |                                          |
+| MainVisibleExtentY                   | StructEnd                | MainVisibleExtentEnd                 | MainVisibleExtentYDefault                |
+| MainVisibleExtentY                   | PrimitiveValue           | MainVisibleExtentYEnd                | ParseMainVisibleExtentY                  |
+| MainVisibleExtentYEnd                | StructEnd                | MainVisibleExtentEnd                 |                                          |
+| MainVisibleExtentEnd                 | AttributBackgroundColor  | MainBackgroundColor                  |                                          |
+| MainBackgroundColor                  | AttributShapes           | MainShapes                           | MainBackgroundColorDefault               |
+| MainBackgroundColor                  | StructStart              | MainBackgroundColorStart             |                                          |
+| MainBackgroundColorStart             | MainBackgroundColorStart | MainBackgroundColorRed               |                                          |
+| MainBackgroundColorRed               | AttributGreen            | MainBackgroundColorGreen             | MainBackgroundColorRedDefault            |
+| MainBackgroundColorRed               | PrimitiveValue           | MainBackgroundColorRedEnd            | ParseMainBackgroundColorRed              |
+| MainBackgroundColorRedEnd            | AttributGreen            | MainBackgroundColorGreen             |                                          |
+| MainBackgroundColorGreen             | AttributBlue             | MainBackgroundColorBlue              | MainBackgroundColorGreenDefault          |
+| MainBackgroundColorGreen             | PrimitiveValue           | MainBackgroundColorGreenEnd          | ParseMainBackgroundColorGreen            |
+| MainBackgroundColorGreenEnd          | AttributBlue             | MainBackgroundColorBlue              |                                          |
+| MainBackgroundColorBlue              | StructEnd                | MainBackgroundColorEnd               | MainBackgroundColorBlueDefault           |
+| MainBackgroundColorBlue              | PrimitiveValue           | MainBackgroundColorBlueEnd           | ParseMainBackgroundColorBlue             |
+| MainBackgroundColorBlueEnd           | StructEnd                | MainBackgroundColorEnd               |                                          |
+| MainBackgroundColorEnd               | AttributShapes           | MainShapes                           |                                          |
+| MainShapes                           | StructEnd                | MainEnd                              | MainShapesDefault                        |
+| MainShapes                           | ArrayStart               | MainShapesStart                      |                                          |
+| MainShapesStart                      | ArrayEnd                 | MainShapesEnd                        |                                          |
+| MainShapesStart                      | StructStart              | MainShapesElementStart               |                                          |
+| MainShapesElementStart               | AttributPosition         | MainShapesElementPosition            |                                          |
+| MainShapesElementPosition            | AttributRotation         | MainShapesElementRotation            | MainShapesElementPositionDefault         |
+| MainShapesElementPosition            | StructStart              | MainShapesElementPositionStart       |                                          |
+| MainShapesElementPositionStart       | AttributX                | MainShapesElementPositionX           |                                          |
+| MainShapesElementPositionX           | AttributY                | MainShapesElementPositionY           | MainShapesElementPositionXDefault        |
+| MainShapesElementPositionX           | PrimitiveValue           | MainShapesElementPositionXEnd        | ParseMainShapesElementPositionX          |
+| MainShapesElementPositionXEnd        | AttributY                | MainShapesElementPositionY           |                                          |
+| MainShapesElementPositionY           | AttributWidth            | MainShapesPolygonWidth               | MainShapesElementPositionYDefault        |
+| MainShapesElementPositionY           | AttributShapes           | MainShapesGroupShapes                | MainShapesElementPositionYDefault        |
+| MainShapesElementPositionY           | PrimitiveValue           | MainShapesElementPositionYEnd        | ParseMainShapesElementPositionY          |
+| MainShapesElementPositionYEnd        | AttributWidth            | MainShapesPolygonWidth               |                                          |
+| MainShapesElementPositionYEnd        | AttributShapes           | MainShapesGroupShapes                |                                          |
+| MainShapesPolygonWidth               | AttributBorderColor      | MainShapesPolygonBorderColor         | MainShapesPolygonWidthDefault            |
+| MainShapesPolygonWidth               | PrimitiveValue           | MainShapesPolygonWidthEnd            | ParseMainShapesPolygonWidth              |
+| MainShapesPolygonWidthEnd            | AttributBorderColor      | MainShapesPolygonBorderColor         |                                          |
+| MainShapesPolygonBorderColor         | AttributFillColor        | MainShapesPolygonFillColor           | MainShapesPolygonBorderColorDefault      |
+| MainShapesPolygonBorderColor         | StructStart              | MainShapesPolygonBorderColorStart    |                                          |
+| MainShapesPolygonBorderColorStart    | AttributRed              | MainShapesPolygonBorderColorRed      |                                          |
+| MainShapesPolygonBorderColorRed      | AttributGreen            | MainShapesPolygonBorderColorGreen    | MainShapesPolygonBorderColorRedDefault   |
+| MainShapesPolygonBorderColorRed      | PrimitiveValue           | MainShapesPolygonBorderColorRedEnd   | ParseMainShapesPolygonBorderColorRed     |
+| MainShapesPolygonBorderColorRedEnd   | AttributGreen            | MainShapesPolygonBorderColorGreen    |                                          |
+| MainShapesPolygonBorderColorGreen    | AttributBlue             | MainShapesPolygonBorderColorBlue     | MainShapesPolygonBorderColorGreenDefault |
+| MainShapesPolygonBorderColorGreen    | PrimitiveValue           | MainShapesPolygonBorderColorGreenEnd | ParseMainShapesPolygonBorderColorGreen   |
+| MainShapesPolygonBorderColorGreenEnd | AttributBlue             | MainShapesPolygonBorderColorBlue     |                                          |
+| MainShapesPolygonBorderColorBlue     | StructEnd                | MainShapesPolygonBorderColorEnd      | MainShapesPolygonBorderColorBlueDefault  |
+| MainShapesPolygonBorderColorBlue     | PrimitiveValue           | MainShapesPolygonBorderColorBlueEnd  | ParseMainShapesPolygonBorderColorBlue    |
+| MainShapesPolygonBorderColorBlueEnd  | StructEnd                | MainShapesPolygonBorderColorEnd      |                                          |
+| MainShapesPolygonBorderColorEnd      | AttributFillColor        | MainShapesPolygonFillColor           |                                          |
+| MainShapesPolygonFillColor           |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
+|                                      |                          |                                      |                                          |
