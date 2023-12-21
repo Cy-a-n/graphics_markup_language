@@ -1,3 +1,4 @@
+mod draw_elements;
 mod lexer;
 mod parser;
 mod token;

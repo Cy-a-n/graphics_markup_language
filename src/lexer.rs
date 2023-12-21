@@ -118,7 +118,7 @@ enum State {
 use std::f32::consts::E;
 
 impl State {
-    fn next_state(&self, input: &char) -> (State, Option<Token>) {
+    fn next_state(&self, input: &char) -> (Self, Option<Token>) {
         match self {
             Err(_) => {
                 panic!("The `next_state`-method should never be called on State::Err")
