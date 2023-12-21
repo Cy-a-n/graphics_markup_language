@@ -1,96 +1,13 @@
-use self::ParserOutput::*;
 use self::ParserState::*;
+use crate::draw_elements::*;
 use crate::token::Token;
 use crate::token::Token::*;
-use crate::draw_elements::*;
 
 pub fn to_polygons(tokens: Vec<Token>) -> Vec<Vec<(i16, i16)>> {
     let mut tokens = tokens.into_iter();
     let state = Start;
 
-    match tokens.next() {
-        Some(token) => {
-            let (next_state, output) = state.next_state(token);
-            if next_state  Err {}
-        }
-        None => todo!(),
-    }
-
     vec![vec![(0, 0)]]
-}
-
-#[derive(Debug)]
-pub enum ParserOutput {
-    MainVisibleExtentXDefault,
-    ParseMainVisibleExtentX,
-    MainVisibleExtentYDefault,
-    ParseMainVisibleExtentY,
-    MainBackgroundColorDefault,
-    MainVisibleExtentDefault,
-    MainBackgroundColorRedDefault,
-    ParseMainBackgroundColorRed,
-    MainBackgroundColorGreenDefault,
-    ParseMainBackgroundColorGreen,
-    MainBackgroundColorBlueDefault,
-    ParseMainBackgroundColorBlue,
-    MainShapesDefault,
-    MainShapesElementPositionDefault,
-    MainShapesElementPositionXDefault,
-    ParseMainShapesElementPositionX,
-    MainShapesElementPositionYDefault,
-    ParseMainShapesElementPositionY,
-    MainShapesElementRotationDefault,
-    ParseMainShapesElementRotation,
-    MainShapesPolygonWidthDefault,
-    ParseMainShapesPolygonWidth,
-    MainShapesPolygonBorderColorDefault,
-    MainShapesPolygonBorderColorRedDefault,
-    ParseMainShapesPolygonBorderColorRed,
-    MainShapesPolygonBorderColorGreenDefault,
-    ParseMainShapesPolygonBorderColorGreen,
-    MainShapesPolygonBorderColorBlueDefault,
-    ParseMainShapesPolygonBorderColorBlue,
-    MainShapesPolygonFillColorDefault,
-    MainShapesPolygonFillColorRedDefault,
-    ParseMainShapesPolygonFillColorRed,
-    MainShapesPolygonFillColorGreenDefault,
-    ParseMainShapesPolygonFillColorGreen,
-    MainShapesPolygonFillColorBlueDefault,
-    ParseMainShapesPolygonFillColorBlue,
-    MainShapesPolygonVerticesDefault,
-    MainShapesPolygonVerticesVertexXDefault,
-    ParseMainShapesPolygonVerticesVertexX,
-    MainShapesPolygonVerticesVertexYDefault,
-    ParseMainShapesPolygonVerticesVertexY,
-    MainShapesGroupShapesDefault,
-    MainShapesGroupShapesPolygonPositionDefault,
-    MainShapesGroupShapesPolygonPositionXDefault,
-    ParseMainShapesGroupShapesPolygonPositionX,
-    MainShapesGroupShapesPolygonPositionYDefault,
-    ParseMainShapesGroupShapesPolygonPositionY,
-    MainShapesGroupShapesPolygonRotationDefault,
-    ParseMainShapesGroupShapesPolygonRotation,
-    MainShapesGroupShapesPolygonWidthDefault,
-    ParseMainShapesGroupShapesPolygonWidth,
-    MainShapesGroupShapesPolygonBorderColorDefault,
-    MainShapesGroupShapesPolygonBorderColorRedDefault,
-    ParseMainShapesGroupShapesPolygonBorderColorRed,
-    MainShapesGroupShapesPolygonBorderColorGreenDefault,
-    ParseMainShapesGroupShapesPolygonBorderColorGreen,
-    MainShapesGroupShapesPolygonBorderColorBlueDefault,
-    ParseMainShapesGroupShapesPolygonBorderColorBlue,
-    MainShapesGroupShapesPolygonFillColorDefault,
-    MainShapesGroupShapesPolygonFillColorRedDefault,
-    ParseMainShapesGroupShapesPolygonFillColorRed,
-    MainShapesGroupShapesPolygonFillColorGreenDefault,
-    ParseMainShapesGroupShapesPolygonFillColorGreen,
-    MainShapesGroupShapesPolygonFillColorBlueDefault,
-    ParseMainShapesGroupShapesPolygonFillColorBlue,
-    MainShapesGroupShapesPolygonVerticesDefault,
-    MainShapesGroupShapesPolygonVerticesVertexXDefault,
-    ParseMainShapesGroupShapesPolygonVerticesVertexX,
-    MainShapesGroupShapesPolygonVerticesVertexYDefault,
-    ParseMainShapesGroupShapesPolygonVerticesVertexY,
 }
 
 #[derive(Debug)]
@@ -202,7 +119,7 @@ enum ParserState {
 }
 
 impl ParserState {
-    fn next_state(&self, input: Token) -> (Self, ) {
+    fn next_state(&self, input: Token) -> (Self,) {
         match self {
             Err => panic!("The `next_state`-method should never be called on ParserState::Err"),
             Start => match input {
