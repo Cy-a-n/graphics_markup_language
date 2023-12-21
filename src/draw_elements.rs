@@ -1,7 +1,7 @@
 pub struct Color {
-    red: u8,
-    green: u8,
-    blue: u8,
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
 }
 
 impl Color {
@@ -15,8 +15,8 @@ impl Color {
 }
 
 pub struct Point {
-    x: i16,
-    y: i16,
+    pub x: i16,
+    pub y: i16,
 }
 
 impl Point {
@@ -26,18 +26,18 @@ impl Point {
 }
 
 pub struct Polygon {
-    position: Point,
-    rotation: u8,
-    width: i16,
-    border_color: Color,
-    fill_color: Color,
-    vertices: Vec<Point>,
+    pub position: Point,
+    pub rotation: u8,
+    pub width: i16,
+    pub border_color: Color,
+    pub fill_color: Color,
+    pub vertices: Vec<Point>,
 }
 
 pub struct Group {
-    position: Point,
-    rotation: u8,
-    shapes: Vec<Polygon>,
+    pub position: Point,
+    pub rotation: u8,
+    pub shapes: Vec<Polygon>,
 }
 
 pub enum Shape {
@@ -46,8 +46,8 @@ pub enum Shape {
 }
 
 pub struct AmbiguousElement {
-    position: Point,
-    rotation: u8,
+    pub position: Point,
+    pub rotation: u8,
 }
 
 impl AmbiguousElement {
@@ -64,9 +64,9 @@ impl AmbiguousElement {
 }
 
 pub struct Main {
-    visible_extent: Point,
-    background_color: Color,
-    shapes: Vec<Shape>,
+    pub visible_extent: Point,
+    pub background_color: Color,
+    pub shapes: Vec<Shape>,
 }
 
 impl Main {

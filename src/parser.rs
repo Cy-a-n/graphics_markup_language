@@ -1,3 +1,7 @@
+mod primitive_parser;
+
+use std::vec::IntoIter;
+
 use self::ParserState::*;
 use crate::draw_elements::*;
 use crate::token::Token;
@@ -10,752 +14,575 @@ pub fn to_polygons(tokens: Vec<Token>) -> Vec<Vec<(i16, i16)>> {
     vec![vec![(0, 0)]]
 }
 
-#[derive(Debug)]
 enum ParserState {
     Start,
-    MainStart,
-    MainVisibleExtent,
-    MainVisibleExtentStart,
-    MainVisibleExtentX,
-    MainVisibleExtentXEnd,
-    MainVisibleExtentY,
-    MainVisibleExtentYEnd,
-    MainVisibleExtentEnd,
-    MainBackgroundColor,
-    MainBackgroundColorStart,
-    MainBackgroundColorRed,
-    MainBackgroundColorRedEnd,
-    MainBackgroundColorGreen,
-    MainBackgroundColorGreenEnd,
-    MainBackgroundColorBlue,
-    MainBackgroundColorBlueEnd,
-    MainBackgroundColorEnd,
-    MainShapes,
-    MainShapesStart,
-    MainShapesElementStart,
-    MainShapesElementPosition,
-    MainShapesElementPositionStart,
-    MainShapesElementPositionX,
-    MainShapesElementPositionXEnd,
-    MainShapesElementPositionY,
-    MainShapesElementPositionYEnd,
-    MainShapesElementPositionEnd,
-    MainShapesElementRotation,
-    MainShapesElementRotationEnd,
-    MainShapesPolygonWidth,
-    MainShapesPolygonWidthEnd,
-    MainShapesPolygonBorderColor,
-    MainShapesPolygonBorderColorStart,
-    MainShapesPolygonBorderColorRed,
-    MainShapesPolygonBorderColorRedEnd,
-    MainShapesPolygonBorderColorGreen,
-    MainShapesPolygonBorderColorGreenEnd,
-    MainShapesPolygonBorderColorBlue,
-    MainShapesPolygonBorderColorBlueEnd,
-    MainShapesPolygonBorderColorEnd,
-    MainShapesPolygonFillColor,
-    MainShapesPolygonFillColorStart,
-    MainShapesPolygonFillColorRed,
-    MainShapesPolygonFillColorRedEnd,
-    MainShapesPolygonFillColorGreen,
-    MainShapesPolygonFillColorGreenEnd,
-    MainShapesPolygonFillColorBlue,
-    MainShapesPolygonFillColorBlueEnd,
-    MainShapesPolygonFillColorEnd,
-    MainShapesPolygonVertices,
-    MainShapesPolygonVerticesStart,
-    MainShapesPolygonVerticesVertexStart,
-    MainShapesPolygonVerticesVertexX,
-    MainShapesPolygonVerticesVertexXEnd,
-    MainShapesPolygonVerticesVertexY,
-    MainShapesPolygonVerticesVertexYEnd,
-    MainShapesPolygonVerticesEnd,
-    MainShapesGroupShapes,
-    MainShapesGroupShapesStart,
-    MainShapesGroupShapesPolygonStart,
-    MainShapesGroupShapesPolygonPosition,
-    MainShapesGroupShapesPolygonPositionStart,
-    MainShapesGroupShapesPolygonPositionX,
-    MainShapesGroupShapesPolygonPositionXEnd,
-    MainShapesGroupShapesPolygonPositionY,
-    MainShapesGroupShapesPolygonPositionYEnd,
-    MainShapesGroupShapesPolygonPositionEnd,
-    MainShapesGroupShapesPolygonRotation,
-    MainShapesGroupShapesPolygonRotationEnd,
-    MainShapesGroupShapesPolygonWidth,
-    MainShapesGroupShapesPolygonWidthEnd,
-    MainShapesGroupShapesPolygonBorderColor,
-    MainShapesGroupShapesPolygonBorderColorStart,
-    MainShapesGroupShapesPolygonBorderColorRed,
-    MainShapesGroupShapesPolygonBorderColorRedEnd,
-    MainShapesGroupShapesPolygonBorderColorGreen,
-    MainShapesGroupShapesPolygonBorderColorGreenEnd,
-    MainShapesGroupShapesPolygonBorderColorBlue,
-    MainShapesGroupShapesPolygonBorderColorBlueEnd,
-    MainShapesGroupShapesPolygonBorderColorEnd,
-    MainShapesGroupShapesPolygonFillColor,
-    MainShapesGroupShapesPolygonFillColorStart,
-    MainShapesGroupShapesPolygonFillColorRed,
-    MainShapesGroupShapesPolygonFillColorRedEnd,
-    MainShapesGroupShapesPolygonFillColorGreen,
-    MainShapesGroupShapesPolygonFillColorGreenEnd,
-    MainShapesGroupShapesPolygonFillColorBlue,
-    MainShapesGroupShapesPolygonFillColorBlueEnd,
-    MainShapesGroupShapesPolygonFillColorEnd,
-    MainShapesGroupShapesPolygonVertices,
-    MainShapesGroupShapesPolygonVerticesStart,
-    MainShapesGroupShapesPolygonVerticesVertexStart,
-    MainShapesGroupShapesPolygonVerticesVertexX,
-    MainShapesGroupShapesPolygonVerticesVertexXEnd,
-    MainShapesGroupShapesPolygonVerticesVertexY,
-    MainShapesGroupShapesPolygonVerticesVertexYEnd,
-    MainShapesGroupShapesPolygonVerticesVertexEnd,
-    MainShapesGroupShapesPolygonVerticesEnd,
-    MainShapesGroupShapesPolygonEnd,
-    MainShapesGroupShapesEnd,
-    MainShapesEnd,
-    MainEnd,
+    MainStart(Main),
+    MainVisibleExtent(Main),
+    MainVisibleExtentStart(Main),
+    MainVisibleExtentX(Main),
+    MainVisibleExtentXEnd(Main),
+    MainVisibleExtentY(Main),
+    MainVisibleExtentYEnd(Main),
+    MainVisibleExtentEnd(Main),
+    MainBackgroundColor(Main),
+    MainBackgroundColorStart(Main),
+    MainBackgroundColorRed(Main),
+    MainBackgroundColorRedEnd(Main),
+    MainBackgroundColorGreen(Main),
+    MainBackgroundColorGreenEnd(Main),
+    MainBackgroundColorBlue(Main),
+    MainBackgroundColorBlueEnd(Main),
+    MainBackgroundColorEnd(Main),
+    MainShapes(Main),
+    MainShapesStart(Main),
+    MainShapesElementStart(Main),
+    MainShapesElementPosition(Main),
+    MainShapesElementPositionStart(Main),
+    MainShapesElementPositionX(Main),
+    MainShapesElementPositionXEnd(Main),
+    MainShapesElementPositionY(Main),
+    MainShapesElementPositionYEnd(Main),
+    MainShapesElementPositionEnd(Main),
+    MainShapesElementRotation(Main),
+    MainShapesElementRotationEnd(Main),
+    MainShapesPolygonWidth(Main),
+    MainShapesPolygonWidthEnd(Main),
+    MainShapesPolygonBorderColor(Main),
+    MainShapesPolygonBorderColorStart(Main),
+    MainShapesPolygonBorderColorRed(Main),
+    MainShapesPolygonBorderColorRedEnd(Main),
+    MainShapesPolygonBorderColorGreen(Main),
+    MainShapesPolygonBorderColorGreenEnd(Main),
+    MainShapesPolygonBorderColorBlue(Main),
+    MainShapesPolygonBorderColorBlueEnd(Main),
+    MainShapesPolygonBorderColorEnd(Main),
+    MainShapesPolygonFillColor(Main),
+    MainShapesPolygonFillColorStart(Main),
+    MainShapesPolygonFillColorRed(Main),
+    MainShapesPolygonFillColorRedEnd(Main),
+    MainShapesPolygonFillColorGreen(Main),
+    MainShapesPolygonFillColorGreenEnd(Main),
+    MainShapesPolygonFillColorBlue(Main),
+    MainShapesPolygonFillColorBlueEnd(Main),
+    MainShapesPolygonFillColorEnd(Main),
+    MainShapesPolygonVertices(Main),
+    MainShapesPolygonVerticesStart(Main),
+    MainShapesPolygonVerticesVertexStart(Main),
+    MainShapesPolygonVerticesVertexX(Main),
+    MainShapesPolygonVerticesVertexXEnd(Main),
+    MainShapesPolygonVerticesVertexY(Main),
+    MainShapesPolygonVerticesVertexYEnd(Main),
+    MainShapesPolygonVerticesEnd(Main),
+    MainShapesGroupShapes(Main),
+    MainShapesGroupShapesStart(Main),
+    MainShapesGroupShapesPolygonStart(Main),
+    MainShapesGroupShapesPolygonPosition(Main),
+    MainShapesGroupShapesPolygonPositionStart(Main),
+    MainShapesGroupShapesPolygonPositionX(Main),
+    MainShapesGroupShapesPolygonPositionXEnd(Main),
+    MainShapesGroupShapesPolygonPositionY(Main),
+    MainShapesGroupShapesPolygonPositionYEnd(Main),
+    MainShapesGroupShapesPolygonPositionEnd(Main),
+    MainShapesGroupShapesPolygonRotation(Main),
+    MainShapesGroupShapesPolygonRotationEnd(Main),
+    MainShapesGroupShapesPolygonWidth(Main),
+    MainShapesGroupShapesPolygonWidthEnd(Main),
+    MainShapesGroupShapesPolygonBorderColor(Main),
+    MainShapesGroupShapesPolygonBorderColorStart(Main),
+    MainShapesGroupShapesPolygonBorderColorRed(Main),
+    MainShapesGroupShapesPolygonBorderColorRedEnd(Main),
+    MainShapesGroupShapesPolygonBorderColorGreen(Main),
+    MainShapesGroupShapesPolygonBorderColorGreenEnd(Main),
+    MainShapesGroupShapesPolygonBorderColorBlue(Main),
+    MainShapesGroupShapesPolygonBorderColorBlueEnd(Main),
+    MainShapesGroupShapesPolygonBorderColorEnd(Main),
+    MainShapesGroupShapesPolygonFillColor(Main),
+    MainShapesGroupShapesPolygonFillColorStart(Main),
+    MainShapesGroupShapesPolygonFillColorRed(Main),
+    MainShapesGroupShapesPolygonFillColorRedEnd(Main),
+    MainShapesGroupShapesPolygonFillColorGreen(Main),
+    MainShapesGroupShapesPolygonFillColorGreenEnd(Main),
+    MainShapesGroupShapesPolygonFillColorBlue(Main),
+    MainShapesGroupShapesPolygonFillColorBlueEnd(Main),
+    MainShapesGroupShapesPolygonFillColorEnd(Main),
+    MainShapesGroupShapesPolygonVertices(Main),
+    MainShapesGroupShapesPolygonVerticesStart(Main),
+    MainShapesGroupShapesPolygonVerticesVertexStart(Main),
+    MainShapesGroupShapesPolygonVerticesVertexX(Main),
+    MainShapesGroupShapesPolygonVerticesVertexXEnd(Main),
+    MainShapesGroupShapesPolygonVerticesVertexY(Main),
+    MainShapesGroupShapesPolygonVerticesVertexYEnd(Main),
+    MainShapesGroupShapesPolygonVerticesVertexEnd(Main),
+    MainShapesGroupShapesPolygonVerticesEnd(Main),
+    MainShapesGroupShapesPolygonEnd(Main),
+    MainShapesGroupShapesEnd(Main),
+    MainShapesEnd(Main),
+    MainEnd(Main),
     Err,
 }
 
 impl ParserState {
-    fn next_state(&self, input: Token) -> (Self,) {
+    fn next_state(self, tokens: &mut IntoIter<Token>) -> Self {
+        let token = tokens.next().expect("The source code ended prematurely");
         match self {
             Err => panic!("The `next_state`-method should never be called on ParserState::Err"),
-            Start => match input {
-                StructStart => (MainStart, None),
-                _ => (Err, None),
-            },
-            MainStart => match input {
-                AttributVisibleExtent => (MainVisibleExtent, None),
-                _ => (Err, None),
-            },
-            MainVisibleExtent => match input {
-                AttributBackgroundColor => (MainBackgroundColor, Some(MainVisibleExtentDefault)),
-                StructStart => (MainVisibleExtentStart, None),
-                _ => (Err, None),
-            },
-            MainVisibleExtentStart => match input {
-                AttributX => (MainVisibleExtentX, None),
-                _ => (Err, None),
-            },
-            MainVisibleExtentX => match input {
-                AttributY => (MainVisibleExtentY, Some(MainVisibleExtentXDefault)),
-                PrimitiveValue => (MainVisibleExtentXEnd, Some(ParseMainVisibleExtentX)),
-                _ => (Err, None),
-            },
-            MainVisibleExtentXEnd => match input {
-                AttributY => (MainVisibleExtentY, None),
-                _ => (Err, None),
-            },
-            MainVisibleExtentY => match input {
-                StructEnd => (MainVisibleExtentEnd, Some(MainVisibleExtentYDefault)),
-                PrimitiveValue => (MainVisibleExtentYEnd, Some(ParseMainVisibleExtentY)),
-                _ => (Err, None),
-            },
-            MainVisibleExtentYEnd => match input {
-                StructEnd => (MainVisibleExtentEnd, None),
-                _ => (Err, None),
-            },
-            MainVisibleExtentEnd => match input {
-                AttributBackgroundColor => (MainBackgroundColor, None),
-                _ => (Err, None),
-            },
-            MainBackgroundColor => match input {
-                AttributShapes => (MainShapes, Some(MainBackgroundColorDefault)),
-                StructStart => (MainBackgroundColorStart, None),
-                _ => (Err, None),
-            },
-            MainBackgroundColorStart => match input {
-                AttributRed => (MainBackgroundColorRed, None),
-                _ => (Err, None),
-            },
-            MainBackgroundColorRed => match input {
-                AttributGreen => (
-                    MainBackgroundColorGreen,
-                    Some(MainBackgroundColorRedDefault),
-                ),
-                PrimitiveValue => (MainBackgroundColorRedEnd, Some(ParseMainBackgroundColorRed)),
-                _ => (Err, None),
-            },
-            MainBackgroundColorRedEnd => match input {
-                AttributGreen => (MainBackgroundColorGreen, None),
-                _ => (Err, None),
-            },
-            MainBackgroundColorGreen => match input {
-                AttributBlue => (
-                    MainBackgroundColorBlue,
-                    Some(MainBackgroundColorGreenDefault),
-                ),
-                PrimitiveValue => (
-                    MainBackgroundColorGreenEnd,
-                    Some(ParseMainBackgroundColorGreen),
-                ),
-                _ => (Err, None),
-            },
-            MainBackgroundColorGreenEnd => match input {
-                AttributBlue => (MainBackgroundColorBlue, None),
-                _ => (Err, None),
-            },
-            MainBackgroundColorBlue => match input {
-                StructEnd => (MainBackgroundColorEnd, Some(MainBackgroundColorBlueDefault)),
-                PrimitiveValue => (
-                    MainBackgroundColorBlueEnd,
-                    Some(ParseMainBackgroundColorBlue),
-                ),
-                _ => (Err, None),
-            },
-            MainBackgroundColorBlueEnd => match input {
-                StructEnd => (MainBackgroundColorEnd, None),
-                _ => (Err, None),
-            },
-            MainBackgroundColorEnd => match input {
-                AttributShapes => (MainShapes, None),
-                _ => (Err, None),
-            },
-            MainShapes => match input {
-                StructEnd => (MainEnd, Some(MainShapesDefault)),
-                ArrayStart => (MainShapesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesStart => match input {
-                ArrayEnd => (MainShapesEnd, None),
-                StructStart => (MainShapesElementStart, None),
-                _ => (Err, None),
-            },
-            MainShapesElementStart => match input {
-                AttributPosition => (MainShapesElementPosition, None),
-                _ => (Err, None),
-            },
-            MainShapesElementPosition => match input {
-                AttributRotation => (
-                    MainShapesElementRotation,
-                    Some(MainShapesElementPositionDefault),
-                ),
-                StructStart => (MainShapesElementPositionStart, None),
-                _ => (Err, None),
-            },
-            MainShapesElementPositionStart => match input {
-                AttributX => (MainShapesElementPositionX, None),
-                _ => (Err, None),
-            },
-            MainShapesElementPositionX => match input {
-                AttributY => (
-                    MainShapesElementPositionY,
-                    Some(MainShapesElementPositionXDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesElementPositionXEnd,
-                    Some(ParseMainShapesElementPositionX),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesElementPositionXEnd => match input {
-                AttributY => (MainShapesElementPositionY, None),
-                _ => (Err, None),
-            },
-            MainShapesElementPositionY => match input {
-                StructEnd => (
-                    MainShapesElementPositionEnd,
-                    Some(MainShapesElementPositionYDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesElementPositionYEnd,
-                    Some(ParseMainShapesElementPositionY),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesElementPositionYEnd => match input {
-                StructEnd => (MainShapesElementPositionEnd, None),
-                _ => (Err, None),
-            },
-            MainShapesElementPositionEnd => match input {
-                AttributRotation => (MainShapesElementRotation, None),
-                _ => (Err, None),
-            },
-            MainShapesElementRotation => match input {
-                AttributWidth => (
-                    MainShapesPolygonWidth,
-                    Some(MainShapesElementRotationDefault),
-                ),
-                AttributShapes => (
-                    MainShapesGroupShapes,
-                    Some(MainShapesElementRotationDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesElementRotationEnd,
-                    Some(ParseMainShapesElementRotation),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesElementRotationEnd => match input {
-                AttributWidth => (MainShapesPolygonWidth, None),
-                AttributShapes => (MainShapesGroupShapes, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonWidth => match input {
-                AttributBorderColor => (
-                    MainShapesPolygonBorderColor,
-                    Some(MainShapesPolygonWidthDefault),
-                ),
-                PrimitiveValue => (MainShapesPolygonWidthEnd, Some(ParseMainShapesPolygonWidth)),
-                _ => (Err, None),
-            },
-            MainShapesPolygonWidthEnd => match input {
-                AttributBorderColor => (MainShapesPolygonBorderColor, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColor => match input {
-                AttributFillColor => (
-                    MainShapesPolygonFillColor,
-                    Some(MainShapesPolygonBorderColorDefault),
-                ),
-                StructStart => (MainShapesPolygonBorderColorStart, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColorStart => match input {
-                AttributRed => (MainShapesPolygonBorderColorRed, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColorRed => match input {
-                AttributGreen => (
-                    MainShapesPolygonBorderColorGreen,
-                    Some(MainShapesPolygonBorderColorRedDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesPolygonBorderColorRedEnd,
-                    Some(ParseMainShapesPolygonBorderColorRed),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColorRedEnd => match input {
-                AttributGreen => (MainShapesPolygonBorderColorGreen, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColorGreen => match input {
-                AttributBlue => (
-                    MainShapesPolygonBorderColorBlue,
-                    Some(MainShapesPolygonBorderColorGreenDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesPolygonBorderColorGreenEnd,
-                    Some(ParseMainShapesPolygonBorderColorGreen),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColorGreenEnd => match input {
-                AttributBlue => (MainShapesPolygonBorderColorBlue, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColorBlue => match input {
-                StructEnd => (
-                    MainShapesPolygonBorderColorEnd,
-                    Some(MainShapesPolygonBorderColorBlueDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesPolygonBorderColorBlueEnd,
-                    Some(ParseMainShapesPolygonBorderColorBlue),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColorBlueEnd => match input {
-                StructEnd => (MainShapesPolygonBorderColorEnd, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonBorderColorEnd => match input {
-                AttributFillColor => (MainShapesPolygonFillColor, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColor => match input {
-                AttributVertices => (
-                    MainShapesPolygonVertices,
-                    Some(MainShapesPolygonFillColorDefault),
-                ),
-                StructStart => (MainShapesPolygonFillColorStart, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColorStart => match input {
-                AttributRed => (MainShapesPolygonFillColorRed, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColorRed => match input {
-                AttributGreen => (
-                    MainShapesPolygonFillColorGreen,
-                    Some(MainShapesPolygonFillColorRedDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesPolygonFillColorRedEnd,
-                    Some(ParseMainShapesPolygonFillColorRed),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColorRedEnd => match input {
-                AttributGreen => (MainShapesPolygonFillColorGreen, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColorGreen => match input {
-                AttributBlue => (
-                    MainShapesPolygonFillColorBlue,
-                    Some(MainShapesPolygonFillColorGreenDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesPolygonFillColorGreenEnd,
-                    Some(ParseMainShapesPolygonFillColorGreen),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColorGreenEnd => match input {
-                AttributBlue => (MainShapesPolygonFillColorBlue, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColorBlue => match input {
-                StructEnd => (
-                    MainShapesPolygonFillColorEnd,
-                    Some(MainShapesPolygonFillColorBlueDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesPolygonFillColorBlueEnd,
-                    Some(ParseMainShapesPolygonFillColorBlue),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColorBlueEnd => match input {
-                StructEnd => (MainShapesPolygonFillColorEnd, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonFillColorEnd => match input {
-                AttributVertices => (MainShapesPolygonVertices, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonVertices => match input {
-                StructEnd => (MainShapesStart, Some(MainShapesPolygonVerticesDefault)),
-                ArrayStart => (MainShapesPolygonVerticesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonVerticesStart => match input {
-                ArrayEnd => (MainShapesPolygonVerticesEnd, None),
-                StructStart => (MainShapesPolygonVerticesVertexStart, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonVerticesVertexStart => match input {
-                AttributX => (MainShapesPolygonVerticesVertexX, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonVerticesVertexX => match input {
-                AttributY => (
-                    MainShapesPolygonVerticesVertexY,
-                    Some(MainShapesPolygonVerticesVertexXDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesPolygonVerticesVertexXEnd,
-                    Some(ParseMainShapesPolygonVerticesVertexX),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesPolygonVerticesVertexXEnd => match input {
-                AttributY => (MainShapesPolygonVerticesVertexY, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonVerticesVertexY => match input {
-                StructEnd => (
-                    MainShapesPolygonVerticesStart,
-                    Some(MainShapesPolygonVerticesVertexYDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesPolygonVerticesVertexYEnd,
-                    Some(ParseMainShapesPolygonVerticesVertexY),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesPolygonVerticesVertexYEnd => match input {
-                StructEnd => (MainShapesPolygonVerticesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesPolygonVerticesEnd => match input {
-                StructEnd => (MainShapesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapes => match input {
-                StructEnd => (MainShapesStart, Some(MainShapesGroupShapesDefault)),
-                ArrayStart => (MainShapesGroupShapesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesStart => match input {
-                ArrayEnd => (MainShapesGroupShapesEnd, None),
-                StructStart => (MainShapesGroupShapesPolygonStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonStart => match input {
-                AttributPosition => (MainShapesGroupShapesPolygonPosition, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonPosition => match input {
-                AttributRotation => (
-                    MainShapesGroupShapesPolygonRotation,
-                    Some(MainShapesGroupShapesPolygonPositionDefault),
-                ),
-                StructStart => (MainShapesGroupShapesPolygonPositionStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonPositionStart => match input {
-                AttributX => (MainShapesGroupShapesPolygonPositionX, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonPositionX => match input {
-                AttributY => (
-                    MainShapesGroupShapesPolygonPositionY,
-                    Some(MainShapesGroupShapesPolygonPositionXDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonPositionXEnd,
-                    Some(ParseMainShapesGroupShapesPolygonPositionX),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonPositionXEnd => match input {
-                AttributY => (MainShapesGroupShapesPolygonPositionY, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonPositionY => match input {
-                StructEnd => (
-                    MainShapesGroupShapesPolygonPositionEnd,
-                    Some(MainShapesGroupShapesPolygonPositionYDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonPositionYEnd,
-                    Some(ParseMainShapesGroupShapesPolygonPositionY),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonPositionYEnd => match input {
-                StructEnd => (MainShapesGroupShapesPolygonPositionEnd, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonPositionEnd => match input {
-                AttributRotation => (MainShapesGroupShapesPolygonRotation, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonRotation => match input {
-                AttributWidth => (
-                    MainShapesGroupShapesPolygonWidth,
-                    Some(MainShapesGroupShapesPolygonRotationDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonRotationEnd,
-                    Some(ParseMainShapesGroupShapesPolygonRotation),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonRotationEnd => match input {
-                AttributWidth => (MainShapesGroupShapesPolygonWidth, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonWidth => match input {
-                AttributBorderColor => (
-                    MainShapesGroupShapesPolygonBorderColor,
-                    Some(MainShapesGroupShapesPolygonWidthDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonWidthEnd,
-                    Some(ParseMainShapesGroupShapesPolygonWidth),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonWidthEnd => match input {
-                AttributBorderColor => (MainShapesGroupShapesPolygonBorderColor, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColor => match input {
-                AttributFillColor => (
-                    MainShapesGroupShapesPolygonFillColor,
-                    Some(MainShapesGroupShapesPolygonBorderColorDefault),
-                ),
-                StructStart => (MainShapesGroupShapesPolygonBorderColorStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColorStart => match input {
-                AttributRed => (MainShapesGroupShapesPolygonBorderColorRed, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColorRed => match input {
-                AttributGreen => (
-                    MainShapesGroupShapesPolygonBorderColorGreen,
-                    Some(MainShapesGroupShapesPolygonBorderColorRedDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonBorderColorRedEnd,
-                    Some(ParseMainShapesGroupShapesPolygonBorderColorRed),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColorRedEnd => match input {
-                AttributGreen => (MainShapesGroupShapesPolygonBorderColorGreen, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColorGreen => match input {
-                AttributBlue => (
-                    MainShapesGroupShapesPolygonBorderColorBlue,
-                    Some(MainShapesGroupShapesPolygonBorderColorGreenDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonBorderColorGreenEnd,
-                    Some(ParseMainShapesGroupShapesPolygonBorderColorGreen),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColorGreenEnd => match input {
-                AttributBlue => (MainShapesGroupShapesPolygonBorderColorBlue, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColorBlue => match input {
-                StructEnd => (
-                    MainShapesGroupShapesPolygonBorderColorEnd,
-                    Some(MainShapesGroupShapesPolygonBorderColorBlueDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonBorderColorBlueEnd,
-                    Some(ParseMainShapesGroupShapesPolygonBorderColorBlue),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColorBlueEnd => match input {
-                StructEnd => (MainShapesGroupShapesPolygonBorderColorEnd, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonBorderColorEnd => match input {
-                AttributFillColor => (MainShapesGroupShapesPolygonFillColor, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColor => match input {
-                AttributVertices => (
-                    MainShapesGroupShapesPolygonVertices,
-                    Some(MainShapesGroupShapesPolygonFillColorDefault),
-                ),
-                StructStart => (MainShapesGroupShapesPolygonFillColorStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColorStart => match input {
-                AttributRed => (MainShapesGroupShapesPolygonFillColorRed, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColorRed => match input {
-                AttributGreen => (
-                    MainShapesGroupShapesPolygonFillColorGreen,
-                    Some(MainShapesGroupShapesPolygonFillColorRedDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonFillColorRedEnd,
-                    Some(ParseMainShapesGroupShapesPolygonFillColorRed),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColorRedEnd => match input {
-                AttributGreen => (MainShapesGroupShapesPolygonFillColorGreen, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColorGreen => match input {
-                AttributBlue => (
-                    MainShapesGroupShapesPolygonFillColorBlue,
-                    Some(MainShapesGroupShapesPolygonFillColorGreenDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonFillColorGreenEnd,
-                    Some(ParseMainShapesGroupShapesPolygonFillColorGreen),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColorGreenEnd => match input {
-                AttributBlue => (MainShapesGroupShapesPolygonFillColorBlue, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColorBlue => match input {
-                StructEnd => (
-                    MainShapesGroupShapesPolygonFillColorEnd,
-                    Some(MainShapesGroupShapesPolygonFillColorBlueDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonFillColorBlueEnd,
-                    Some(ParseMainShapesGroupShapesPolygonFillColorBlue),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColorBlueEnd => match input {
-                StructEnd => (MainShapesGroupShapesPolygonFillColorEnd, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonFillColorEnd => match input {
-                AttributVertices => (MainShapesGroupShapesPolygonVertices, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVertices => match input {
-                StructEnd => (
-                    MainShapesStart,
-                    Some(MainShapesGroupShapesPolygonVerticesDefault),
-                ),
-                ArrayStart => (MainShapesGroupShapesPolygonVerticesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVerticesStart => match input {
-                ArrayEnd => (MainShapesGroupShapesPolygonVerticesEnd, None),
-                StructStart => (MainShapesGroupShapesPolygonVerticesVertexStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVerticesVertexStart => match input {
-                AttributX => (MainShapesGroupShapesPolygonVerticesVertexX, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVerticesVertexX => match input {
-                AttributY => (
-                    MainShapesGroupShapesPolygonVerticesVertexY,
-                    Some(MainShapesGroupShapesPolygonVerticesVertexXDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonVerticesVertexXEnd,
-                    Some(ParseMainShapesGroupShapesPolygonVerticesVertexX),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVerticesVertexXEnd => match input {
-                AttributY => (MainShapesGroupShapesPolygonVerticesVertexY, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVerticesVertexY => match input {
-                StructEnd => (
-                    MainShapesGroupShapesPolygonVerticesStart,
-                    Some(MainShapesGroupShapesPolygonVerticesVertexYDefault),
-                ),
-                PrimitiveValue => (
-                    MainShapesGroupShapesPolygonVerticesVertexYEnd,
-                    Some(ParseMainShapesGroupShapesPolygonVerticesVertexY),
-                ),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVerticesVertexYEnd => match input {
-                StructEnd => (MainShapesGroupShapesPolygonVerticesVertexEnd, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVerticesVertexEnd => match input {
-                StructEnd => (MainShapesGroupShapesPolygonVerticesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonVerticesEnd => match input {
-                StructEnd => (MainShapesGroupShapesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesPolygonEnd => match input {
-                StructEnd => (MainShapesGroupShapesPolygonEnd, None),
-                _ => (Err, None),
-            },
-            MainShapesGroupShapesEnd => match input {
-                StructEnd => (MainShapesStart, None),
-                _ => (Err, None),
-            },
-            MainShapesEnd => match input {
-                StructEnd => (MainEnd, None),
-                _ => (Err, None),
-            },
-            MainEnd => match input {
-                _ => (Err, None),
+            Start => match token {
+                StructStart => MainStart(Main::default()),
+                _ => panic!("Encountered invalid token"),
+            },
+            MainStart(main) => match token {
+                AttributVisibleExtent => MainVisibleExtent(main),
+                _ => Err,
+            },
+            MainVisibleExtent(main) => match token {
+                AttributBackgroundColor => MainBackgroundColor(main),
+                StructStart => MainVisibleExtentStart(main),
+                _ => Err,
+            },
+            MainVisibleExtentStart(main) => match token {
+                AttributX => MainVisibleExtentX(main),
+                _ => Err,
+            },
+            MainVisibleExtentX(main) => match token {
+                AttributY => MainVisibleExtentY(main),
+                PrimitiveValue => main.x = parse_i16(token),
+                _ => Err,
+            },
+            MainVisibleExtentXEnd(main) => match token {
+                AttributY => MainVisibleExtentY(main),
+                _ => Err,
+            },
+            MainVisibleExtentY(main) => match token {
+                StructEnd => MainVisibleExtentEnd(main),
+                PrimitiveValue => MainVisibleExtentYEnd(main),
+                _ => Err,
+            },
+            MainVisibleExtentYEnd(main) => match token {
+                StructEnd => MainVisibleExtentEnd(main),
+                _ => Err,
+            },
+            MainVisibleExtentEnd(main) => match token {
+                AttributBackgroundColor => MainBackgroundColor(main),
+                _ => Err,
+            },
+            MainBackgroundColor(main) => match token {
+                AttributShapes => MainShapes(main),
+                StructStart => MainBackgroundColorStart(main),
+                _ => Err,
+            },
+            MainBackgroundColorStart(main) => match token {
+                AttributRed => MainBackgroundColorRed(main),
+                _ => Err,
+            },
+            MainBackgroundColorRed(main) => match token {
+                AttributGreen => MainBackgroundColorGreen(main),
+                PrimitiveValue => MainBackgroundColorRedEnd(main),
+                _ => Err,
+            },
+            MainBackgroundColorRedEnd(main) => match token {
+                AttributGreen => MainBackgroundColorGreen(main),
+                _ => Err,
+            },
+            MainBackgroundColorGreen(main) => match token {
+                AttributBlue => MainBackgroundColorBlue(main),
+                PrimitiveValue => MainBackgroundColorGreenEnd(main),
+                _ => Err,
+            },
+            MainBackgroundColorGreenEnd(main) => match token {
+                AttributBlue => MainBackgroundColorBlue(main),
+                _ => Err,
+            },
+            MainBackgroundColorBlue(main) => match token {
+                StructEnd => MainBackgroundColorEnd(main),
+                PrimitiveValue => MainBackgroundColorBlueEnd(main),
+                _ => Err,
+            },
+            MainBackgroundColorBlueEnd(main) => match token {
+                StructEnd => MainBackgroundColorEnd(main),
+                _ => Err,
+            },
+            MainBackgroundColorEnd(main) => match token {
+                AttributShapes => MainShapes(main),
+                _ => Err,
+            },
+            MainShapes(main) => match token {
+                StructEnd => MainEnd(main),
+                ArrayStart => MainShapesStart(main),
+                _ => Err,
+            },
+            MainShapesStart(main) => match token {
+                ArrayEnd => MainShapesEnd(main),
+                StructStart => MainShapesElementStart(main),
+                _ => Err,
+            },
+            MainShapesElementStart(main) => match token {
+                AttributPosition => MainShapesElementPosition(main),
+                _ => Err,
+            },
+            MainShapesElementPosition(main) => match token {
+                AttributRotation => MainShapesElementRotation(main),
+                StructStart => MainShapesElementPositionStart(main),
+                _ => Err,
+            },
+            MainShapesElementPositionStart(main) => match token {
+                AttributX => MainShapesElementPositionX(main),
+                _ => Err,
+            },
+            MainShapesElementPositionX(main) => match token {
+                AttributY => MainShapesElementPositionY(main),
+                PrimitiveValue => MainShapesElementPositionXEnd(main),
+                _ => Err,
+            },
+            MainShapesElementPositionXEnd(main) => match token {
+                AttributY => MainShapesElementPositionY(main),
+                _ => Err,
+            },
+            MainShapesElementPositionY(main) => match token {
+                StructEnd => MainShapesElementPositionEnd(main),
+                PrimitiveValue => MainShapesElementPositionYEnd(main),
+                _ => Err,
+            },
+            MainShapesElementPositionYEnd(main) => match token {
+                StructEnd => MainShapesElementPositionEnd(main),
+                _ => Err,
+            },
+            MainShapesElementPositionEnd(main) => match token {
+                AttributRotation => MainShapesElementRotation(main),
+                _ => Err,
+            },
+            MainShapesElementRotation(main) => match token {
+                AttributWidth => MainShapesPolygonWidth(main),
+                AttributShapes => MainShapesGroupShapes(main),
+                PrimitiveValue => MainShapesElementRotationEnd(main),
+                _ => Err,
+            },
+            MainShapesElementRotationEnd(main) => match token {
+                AttributWidth => MainShapesPolygonWidth(main),
+                AttributShapes => MainShapesGroupShapes(main),
+                _ => Err,
+            },
+            MainShapesPolygonWidth(main) => match token {
+                AttributBorderColor => MainShapesPolygonBorderColor(main),
+                PrimitiveValue => MainShapesPolygonWidthEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonWidthEnd(main) => match token {
+                AttributBorderColor => MainShapesPolygonBorderColor(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColor(main) => match token {
+                AttributFillColor => MainShapesPolygonFillColor(main),
+                StructStart => MainShapesPolygonBorderColorStart(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColorStart(main) => match token {
+                AttributRed => MainShapesPolygonBorderColorRed(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColorRed(main) => match token {
+                AttributGreen => MainShapesPolygonBorderColorGreen(main),
+                PrimitiveValue => MainShapesPolygonBorderColorRedEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColorRedEnd(main) => match token {
+                AttributGreen => MainShapesPolygonBorderColorGreen(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColorGreen(main) => match token {
+                AttributBlue => MainShapesPolygonBorderColorBlue(main),
+                PrimitiveValue => MainShapesPolygonBorderColorGreenEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColorGreenEnd(main) => match token {
+                AttributBlue => MainShapesPolygonBorderColorBlue(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColorBlue(main) => match token {
+                StructEnd => MainShapesPolygonBorderColorEnd(main),
+                PrimitiveValue => MainShapesPolygonBorderColorBlueEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColorBlueEnd(main) => match token {
+                StructEnd => MainShapesPolygonBorderColorEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonBorderColorEnd(main) => match token {
+                AttributFillColor => MainShapesPolygonFillColor(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColor(main) => match token {
+                AttributVertices => MainShapesPolygonVertices(main),
+                StructStart => MainShapesPolygonFillColorStart(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColorStart(main) => match token {
+                AttributRed => MainShapesPolygonFillColorRed(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColorRed(main) => match token {
+                AttributGreen => MainShapesPolygonFillColorGreen(main),
+                PrimitiveValue => MainShapesPolygonFillColorRedEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColorRedEnd(main) => match token {
+                AttributGreen => MainShapesPolygonFillColorGreen(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColorGreen(main) => match token {
+                AttributBlue => MainShapesPolygonFillColorBlue(main),
+                PrimitiveValue => MainShapesPolygonFillColorGreenEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColorGreenEnd(main) => match token {
+                AttributBlue => MainShapesPolygonFillColorBlue(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColorBlue(main) => match token {
+                StructEnd => MainShapesPolygonFillColorEnd(main),
+                PrimitiveValue => MainShapesPolygonFillColorBlueEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColorBlueEnd(main) => match token {
+                StructEnd => MainShapesPolygonFillColorEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonFillColorEnd(main) => match token {
+                AttributVertices => MainShapesPolygonVertices(main),
+                _ => Err,
+            },
+            MainShapesPolygonVertices(main) => match token {
+                StructEnd => MainShapesStart(main),
+                ArrayStart => MainShapesPolygonVerticesStart(main),
+                _ => Err,
+            },
+            MainShapesPolygonVerticesStart(main) => match token {
+                ArrayEnd => MainShapesPolygonVerticesEnd(main),
+                StructStart => MainShapesPolygonVerticesVertexStart(main),
+                _ => Err,
+            },
+            MainShapesPolygonVerticesVertexStart(main) => match token {
+                AttributX => MainShapesPolygonVerticesVertexX(main),
+                _ => Err,
+            },
+            MainShapesPolygonVerticesVertexX(main) => match token {
+                AttributY => MainShapesPolygonVerticesVertexY(main),
+                PrimitiveValue => MainShapesPolygonVerticesVertexXEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonVerticesVertexXEnd(main) => match token {
+                AttributY => MainShapesPolygonVerticesVertexY(main),
+                _ => Err,
+            },
+            MainShapesPolygonVerticesVertexY(main) => match token {
+                StructEnd => MainShapesPolygonVerticesStart(main),
+                PrimitiveValue => MainShapesPolygonVerticesVertexYEnd(main),
+                _ => Err,
+            },
+            MainShapesPolygonVerticesVertexYEnd(main) => match token {
+                StructEnd => MainShapesPolygonVerticesStart(main),
+                _ => Err,
+            },
+            MainShapesPolygonVerticesEnd(main) => match token {
+                StructEnd => MainShapesStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapes(main) => match token {
+                StructEnd => MainShapesStart(main),
+                ArrayStart => MainShapesGroupShapesStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesStart(main) => match token {
+                ArrayEnd => MainShapesGroupShapesEnd(main),
+                StructStart => MainShapesGroupShapesPolygonStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonStart(main) => match token {
+                AttributPosition => MainShapesGroupShapesPolygonPosition(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonPosition(main) => match token {
+                AttributRotation => MainShapesGroupShapesPolygonRotation(main),
+                StructStart => MainShapesGroupShapesPolygonPositionStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonPositionStart(main) => match token {
+                AttributX => MainShapesGroupShapesPolygonPositionX(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonPositionX(main) => match token {
+                AttributY => MainShapesGroupShapesPolygonPositionY(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonPositionXEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonPositionXEnd(main) => match token {
+                AttributY => MainShapesGroupShapesPolygonPositionY(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonPositionY(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonPositionEnd(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonPositionYEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonPositionYEnd(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonPositionEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonPositionEnd(main) => match token {
+                AttributRotation => MainShapesGroupShapesPolygonRotation(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonRotation(main) => match token {
+                AttributWidth => MainShapesGroupShapesPolygonWidth(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonRotationEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonRotationEnd(main) => match token {
+                AttributWidth => MainShapesGroupShapesPolygonWidth(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonWidth(main) => match token {
+                AttributBorderColor => MainShapesGroupShapesPolygonBorderColor(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonWidthEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonWidthEnd(main) => match token {
+                AttributBorderColor => MainShapesGroupShapesPolygonBorderColor(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColor(main) => match token {
+                AttributFillColor => MainShapesGroupShapesPolygonFillColor(main),
+                StructStart => MainShapesGroupShapesPolygonBorderColorStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColorStart(main) => match token {
+                AttributRed => MainShapesGroupShapesPolygonBorderColorRed(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColorRed(main) => match token {
+                AttributGreen => MainShapesGroupShapesPolygonBorderColorGreen(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonBorderColorRedEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColorRedEnd(main) => match token {
+                AttributGreen => MainShapesGroupShapesPolygonBorderColorGreen(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColorGreen(main) => match token {
+                AttributBlue => MainShapesGroupShapesPolygonBorderColorBlue(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonBorderColorGreenEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColorGreenEnd(main) => match token {
+                AttributBlue => MainShapesGroupShapesPolygonBorderColorBlue(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColorBlue(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonBorderColorEnd(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonBorderColorBlueEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColorBlueEnd(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonBorderColorEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonBorderColorEnd(main) => match token {
+                AttributFillColor => MainShapesGroupShapesPolygonFillColor(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColor(main) => match token {
+                AttributVertices => MainShapesGroupShapesPolygonVertices(main),
+                StructStart => MainShapesGroupShapesPolygonFillColorStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColorStart(main) => match token {
+                AttributRed => MainShapesGroupShapesPolygonFillColorRed(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColorRed(main) => match token {
+                AttributGreen => MainShapesGroupShapesPolygonFillColorGreen(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonFillColorRedEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColorRedEnd(main) => match token {
+                AttributGreen => MainShapesGroupShapesPolygonFillColorGreen(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColorGreen(main) => match token {
+                AttributBlue => MainShapesGroupShapesPolygonFillColorBlue(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonFillColorGreenEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColorGreenEnd(main) => match token {
+                AttributBlue => MainShapesGroupShapesPolygonFillColorBlue(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColorBlue(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonFillColorEnd(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonFillColorBlueEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColorBlueEnd(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonFillColorEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonFillColorEnd(main) => match token {
+                AttributVertices => MainShapesGroupShapesPolygonVertices(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVertices(main) => match token {
+                StructEnd => MainShapesStart(main),
+                ArrayStart => MainShapesGroupShapesPolygonVerticesStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVerticesStart(main) => match token {
+                ArrayEnd => MainShapesGroupShapesPolygonVerticesEnd(main),
+                StructStart => MainShapesGroupShapesPolygonVerticesVertexStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVerticesVertexStart(main) => match token {
+                AttributX => MainShapesGroupShapesPolygonVerticesVertexX(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVerticesVertexX(main) => match token {
+                AttributY => MainShapesGroupShapesPolygonVerticesVertexY(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonVerticesVertexXEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVerticesVertexXEnd(main) => match token {
+                AttributY => MainShapesGroupShapesPolygonVerticesVertexY(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVerticesVertexY(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonVerticesStart(main),
+                PrimitiveValue => MainShapesGroupShapesPolygonVerticesVertexYEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVerticesVertexYEnd(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonVerticesVertexEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVerticesVertexEnd(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonVerticesStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonVerticesEnd(main) => match token {
+                StructEnd => MainShapesGroupShapesStart(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesPolygonEnd(main) => match token {
+                StructEnd => MainShapesGroupShapesPolygonEnd(main),
+                _ => Err,
+            },
+            MainShapesGroupShapesEnd(main) => match token {
+                StructEnd => MainShapesStart(main),
+                _ => Err,
+            },
+            MainShapesEnd(main) => match token {
+                StructEnd => MainEnd(main),
+                _ => Err,
+            },
+            MainEnd(main) => match token {
+                _ => Err,
             },
         }
     }
