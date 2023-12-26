@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
@@ -14,6 +15,7 @@ impl Color {
     }
 }
 
+#[derive(Debug)]
 pub struct Point {
     pub x: i16,
     pub y: i16,
@@ -25,6 +27,7 @@ impl Point {
     }
 }
 
+#[derive(Debug)]
 pub struct Polygon {
     pub position: Point,
     pub rotation: u8,
@@ -34,23 +37,46 @@ pub struct Polygon {
     pub vertices: Vec<Point>,
 }
 
+impl Polygon {
+    pub fn default() -> Self {
+        Polygon {
+            position: Point::default(),
+            rotation: 0,
+            width: 0,
+            border_color: Color::default(),
+            fill_color: Color::default(),
+            vertices: vec![],
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct Group {
     pub position: Point,
     pub rotation: u8,
     pub shapes: Vec<Polygon>,
 }
 
+#[derive(Debug)]
 pub enum Shape {
     Polygon(Polygon),
     Group(Group),
 }
 
+#[derive(Debug)]
 pub struct AmbiguousElement {
     pub position: Point,
     pub rotation: u8,
 }
 
 impl AmbiguousElement {
+    pub fn default() -> Self {
+        AmbiguousElement {
+            position: Point::default(),
+            rotation: 0,
+        }
+    }
+
     pub fn into_polygon(self) -> Polygon {
         Polygon {
             position: self.position,
@@ -61,8 +87,17 @@ impl AmbiguousElement {
             vertices: vec![],
         }
     }
+
+    pub fn into_group(self) -> Group {
+        Group {
+            position: self.position,
+            rotation: self.rotation,
+            shapes: vec![],
+        }
+    }
 }
 
+#[derive(Debug)]
 pub struct Main {
     pub visible_extent: Point,
     pub background_color: Color,

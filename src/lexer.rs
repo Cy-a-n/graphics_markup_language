@@ -29,93 +29,174 @@ pub fn tokenize(source_code: &str) -> Vec<Token> {
 #[derive(Debug)]
 enum State {
     Start,
+    #[allow(non_camel_case_types)]
     String_r,
+    #[allow(non_camel_case_types)]
     String_re,
+    #[allow(non_camel_case_types)]
     String_g,
+    #[allow(non_camel_case_types)]
     String_gr,
+    #[allow(non_camel_case_types)]
     String_gre,
+    #[allow(non_camel_case_types)]
     String_gree,
+    #[allow(non_camel_case_types)]
     String_b,
+    #[allow(non_camel_case_types)]
     String_bl,
+    #[allow(non_camel_case_types)]
     String_blu,
+    #[allow(non_camel_case_types)]
     String_p,
+    #[allow(non_camel_case_types)]
     String_po,
+    #[allow(non_camel_case_types)]
     String_pos,
+    #[allow(non_camel_case_types)]
     String_posi,
+    #[allow(non_camel_case_types)]
     String_posit,
+    #[allow(non_camel_case_types)]
     String_positi,
+    #[allow(non_camel_case_types)]
     String_positio,
+    #[allow(non_camel_case_types)]
     String_ro,
+    #[allow(non_camel_case_types)]
     String_rot,
+    #[allow(non_camel_case_types)]
     String_rota,
+    #[allow(non_camel_case_types)]
     String_rotat,
+    #[allow(non_camel_case_types)]
     String_rotati,
+    #[allow(non_camel_case_types)]
     String_rotatio,
+    #[allow(non_camel_case_types)]
     String_w,
+    #[allow(non_camel_case_types)]
     String_wi,
+    #[allow(non_camel_case_types)]
     String_wid,
+    #[allow(non_camel_case_types)]
     String_widt,
+    #[allow(non_camel_case_types)]
     String_bo,
+    #[allow(non_camel_case_types)]
     String_bor,
+    #[allow(non_camel_case_types)]
     String_bord,
+    #[allow(non_camel_case_types)]
     String_borde,
+    #[allow(non_camel_case_types)]
     String_border,
+    #[allow(non_camel_case_types)]
     String_border_,
+    #[allow(non_camel_case_types)]
     String_border_c,
+    #[allow(non_camel_case_types)]
     String_border_co,
+    #[allow(non_camel_case_types)]
     String_border_col,
+    #[allow(non_camel_case_types)]
     String_border_colo,
+    #[allow(non_camel_case_types)]
     String_f,
+    #[allow(non_camel_case_types)]
     String_fi,
+    #[allow(non_camel_case_types)]
     String_fil,
+    #[allow(non_camel_case_types)]
     String_fill,
+    #[allow(non_camel_case_types)]
     String_fill_,
+    #[allow(non_camel_case_types)]
     String_fill_c,
+    #[allow(non_camel_case_types)]
     String_fill_co,
+    #[allow(non_camel_case_types)]
     String_fill_col,
+    #[allow(non_camel_case_types)]
     String_fill_colo,
+    #[allow(non_camel_case_types)]
     String_v,
+    #[allow(non_camel_case_types)]
     String_ve,
+    #[allow(non_camel_case_types)]
     String_ver,
+    #[allow(non_camel_case_types)]
     String_vert,
+    #[allow(non_camel_case_types)]
     String_verti,
+    #[allow(non_camel_case_types)]
     String_vertic,
+    #[allow(non_camel_case_types)]
     String_vertice,
+    #[allow(non_camel_case_types)]
     String_vi,
+    #[allow(non_camel_case_types)]
     String_vis,
+    #[allow(non_camel_case_types)]
     String_visi,
+    #[allow(non_camel_case_types)]
     String_visib,
+    #[allow(non_camel_case_types)]
     String_visibl,
+    #[allow(non_camel_case_types)]
     String_visible,
+    #[allow(non_camel_case_types)]
     String_visible_,
+    #[allow(non_camel_case_types)]
     String_visible_e,
+    #[allow(non_camel_case_types)]
     String_visible_ex,
+    #[allow(non_camel_case_types)]
     String_visible_ext,
+    #[allow(non_camel_case_types)]
     String_visible_exte,
+    #[allow(non_camel_case_types)]
     String_visible_exten,
+    #[allow(non_camel_case_types)]
     String_ba,
+    #[allow(non_camel_case_types)]
     String_bac,
+    #[allow(non_camel_case_types)]
     String_back,
+    #[allow(non_camel_case_types)]
     String_backg,
+    #[allow(non_camel_case_types)]
     String_backgr,
+    #[allow(non_camel_case_types)]
     String_backgro,
+    #[allow(non_camel_case_types)]
     String_backgrou,
+    #[allow(non_camel_case_types)]
     String_backgroun,
+    #[allow(non_camel_case_types)]
     String_background,
+    #[allow(non_camel_case_types)]
     String_background_,
+    #[allow(non_camel_case_types)]
     String_background_c,
+    #[allow(non_camel_case_types)]
     String_background_co,
+    #[allow(non_camel_case_types)]
     String_background_col,
+    #[allow(non_camel_case_types)]
     String_background_colo,
+    #[allow(non_camel_case_types)]
     String_s,
+    #[allow(non_camel_case_types)]
     String_sh,
+    #[allow(non_camel_case_types)]
     String_sha,
+    #[allow(non_camel_case_types)]
     String_shap,
+    #[allow(non_camel_case_types)]
     String_shape,
     Err(Vec<char>),
 }
-
-use std::f32::consts::E;
 
 impl State {
     fn next_state(&self, input: &char) -> (Self, Option<Token>) {
