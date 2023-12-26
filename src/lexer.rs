@@ -2,7 +2,7 @@ use crate::token::Token;
 use crate::token::Token::*;
 use State::*;
 
-pub fn tokenize(source_code: &str) -> Vec<Token> {
+pub fn to_tokens(source_code: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = vec![];
     let mut current_state = Start;
 
@@ -205,7 +205,7 @@ impl State {
                 panic!("The `next_state`-method should never be called on State::Err")
             }
             Start => match input {
-                ' ' => (Start, None),
+                c if c.is_whitespace() => (Start, None),
                 '=' => (Start, Some(PrimitiveValue)),
                 '-' => (Start, Some(NegativValue)),
                 '+' => (Start, Some(PositiveValue)),
@@ -570,5 +570,466 @@ impl State {
                 _ => (Err(vec!['s']), None),
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn minimal_source_code() {
+        let source_code = "{visible_extentbackground_colorshapes}";
+        let expected_tokens = vec![
+            StructStart,
+            AttributVisibleExtent,
+            AttributBackgroundColor,
+            AttributShapes,
+            StructEnd,
+        ];
+
+        assert_eq!(to_tokens(source_code), expected_tokens);
+    }
+
+    #[test]
+    fn custom_visible_extent() {
+        let source_code = "{visible_extent{x=+10001111y=-001010101111111}background_colorshapes}";
+        let expected_tokens = vec![
+            StructStart,
+            AttributVisibleExtent,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            PositiveValue,
+            One,
+            Zero,
+            Zero,
+            Zero,
+            One,
+            One,
+            One,
+            One,
+            AttributY,
+            PrimitiveValue,
+            NegativValue,
+            Zero,
+            Zero,
+            One,
+            Zero,
+            One,
+            Zero,
+            One,
+            Zero,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            StructEnd,
+            AttributBackgroundColor,
+            AttributShapes,
+            StructEnd,
+        ];
+
+        assert_eq!(to_tokens(source_code), expected_tokens);
+    }
+
+    #[test]
+    fn custom_background_color() {
+        let source_code =
+            "{visible_extentbackground_color{red=11111111green=00000000blue=0}shapes}";
+        let expected_tokens = vec![
+            StructStart,
+            AttributVisibleExtent,
+            AttributBackgroundColor,
+            StructStart,
+            AttributRed,
+            PrimitiveValue,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            AttributGreen,
+            PrimitiveValue,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            AttributBlue,
+            PrimitiveValue,
+            Zero,
+            StructEnd,
+            AttributShapes,
+            StructEnd,
+        ];
+
+        assert_eq!(to_tokens(source_code), expected_tokens);
+    }
+
+    #[test]
+    fn custom_full() {
+        let source_code = r#"{
+            visible_extent {
+                x = -10
+                y = 11111
+            }
+            background_color {
+                red = 1
+                green = 0
+                blue = 11
+            }
+            shapes [
+                {
+                    position
+                    rotation
+                    width
+                    border_color
+                    fill_color
+                    vertices
+                }
+                {
+                    position {
+                        x = +0
+                        y = -0
+                    }
+                    rotation = 0
+                    shapes [ 
+                        { 
+                            position { 
+                                x = 1 
+                                y = 0
+                            }
+                            rotation = 11
+                            width = -111111111111111
+                            border_color { 
+                                red = 1
+                                green = 0
+                                blue = 
+                                11
+                            }
+                            fill_color {
+                                red = 11111111
+                                green = 0
+                                blue = 10
+                            }
+                            vertices [ 
+                                {
+                                    x = -10
+                                    y = 10
+                                }
+                                {
+                                    x = -1
+                                    y=1
+                                }
+                            ]
+                        }
+                        {
+                            position
+                            rotation
+                            width
+                            border_color
+                            fill_color
+                            vertices
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = +0
+                        y = -1
+                    }
+                    rotation = 1
+                    width = -10
+                    border_color {
+                        red = 1
+                        green = 0
+                        blue = 101
+                    }
+                    fill_color {
+                        red = 0
+                        green = 1
+                        blue = 10
+                    }
+                    vertices [
+                        {
+                            
+                            x = 1010
+                            y = 10101
+                        }
+                        {
+                            x = 101010
+                            y = 1010101
+                        }
+                    ]
+                }
+                {
+                    position
+                    rotation
+                    shapes
+                }
+            ]
+        }"#;
+
+        let expected_tokens = vec![
+            StructStart,
+            AttributVisibleExtent,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            NegativValue,
+            One,
+            Zero,
+            AttributY,
+            PrimitiveValue,
+            One,
+            One,
+            One,
+            One,
+            One,
+            StructEnd,
+            AttributBackgroundColor,
+            StructStart,
+            AttributRed,
+            PrimitiveValue,
+            One,
+            AttributGreen,
+            PrimitiveValue,
+            Zero,
+            AttributBlue,
+            PrimitiveValue,
+            One,
+            One,
+            StructEnd,
+            AttributShapes,
+            ArrayStart,
+            StructStart,
+            AttributPosition,
+            AttributRotation,
+            AttributWidth,
+            AttributBorderColor,
+            AttributFillColor,
+            AttributVertices,
+            StructEnd,
+            StructStart,
+            AttributPosition,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            PositiveValue,
+            Zero,
+            AttributY,
+            PrimitiveValue,
+            NegativValue,
+            Zero,
+            StructEnd,
+            AttributRotation,
+            PrimitiveValue,
+            Zero,
+            AttributShapes,
+            ArrayStart,
+            StructStart,
+            AttributPosition,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            One,
+            AttributY,
+            PrimitiveValue,
+            Zero,
+            StructEnd,
+            AttributRotation,
+            PrimitiveValue,
+            One,
+            One,
+            AttributWidth,
+            PrimitiveValue,
+            NegativValue,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            AttributBorderColor,
+            StructStart,
+            AttributRed,
+            PrimitiveValue,
+            One,
+            AttributGreen,
+            PrimitiveValue,
+            Zero,
+            AttributBlue,
+            PrimitiveValue,
+            One,
+            One,
+            StructEnd,
+            AttributFillColor,
+            StructStart,
+            AttributRed,
+            PrimitiveValue,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            AttributGreen,
+            PrimitiveValue,
+            Zero,
+            AttributBlue,
+            PrimitiveValue,
+            One,
+            Zero,
+            StructEnd,
+            AttributVertices,
+            ArrayStart,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            NegativValue,
+            One,
+            Zero,
+            AttributY,
+            PrimitiveValue,
+            One,
+            Zero,
+            StructEnd,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            NegativValue,
+            One,
+            AttributY,
+            PrimitiveValue,
+            One,
+            StructEnd,
+            ArrayEnd,
+            StructEnd,
+            StructStart,
+            AttributPosition,
+            AttributRotation,
+            AttributWidth,
+            AttributBorderColor,
+            AttributFillColor,
+            AttributVertices,
+            StructEnd,
+            ArrayEnd,
+            StructEnd,
+            StructStart,
+            AttributPosition,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            PositiveValue,
+            Zero,
+            AttributY,
+            PrimitiveValue,
+            NegativValue,
+            One,
+            StructEnd,
+            AttributRotation,
+            PrimitiveValue,
+            One,
+            AttributWidth,
+            PrimitiveValue,
+            NegativValue,
+            One,
+            Zero,
+            AttributBorderColor,
+            StructStart,
+            AttributRed,
+            PrimitiveValue,
+            One,
+            AttributGreen,
+            PrimitiveValue,
+            Zero,
+            AttributBlue,
+            PrimitiveValue,
+            One,
+            Zero,
+            One,
+            StructEnd,
+            AttributFillColor,
+            StructStart,
+            AttributRed,
+            PrimitiveValue,
+            Zero,
+            AttributGreen,
+            PrimitiveValue,
+            One,
+            AttributBlue,
+            PrimitiveValue,
+            One,
+            Zero,
+            StructEnd,
+            AttributVertices,
+            ArrayStart,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            One,
+            Zero,
+            One,
+            Zero,
+            AttributY,
+            PrimitiveValue,
+            One,
+            Zero,
+            One,
+            Zero,
+            One,
+            StructEnd,
+            StructStart,
+            AttributX,
+            PrimitiveValue,
+            One,
+            Zero,
+            One,
+            Zero,
+            One,
+            Zero,
+            AttributY,
+            PrimitiveValue,
+            One,
+            Zero,
+            One,
+            Zero,
+            One,
+            Zero,
+            One,
+            StructEnd,
+            ArrayEnd,
+            StructEnd,
+            StructStart,
+            AttributPosition,
+            AttributRotation,
+            AttributShapes,
+            StructEnd,
+            ArrayEnd,
+            StructEnd,
+        ];
+
+        assert_eq!(to_tokens(source_code), expected_tokens);
     }
 }

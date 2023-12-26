@@ -239,7 +239,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_i16_0_unsigned_full() {
+    fn unsigned_0_full() {
         let tokens = vec![
             Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero,
             StructEnd,
@@ -248,7 +248,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_i16_0_positive_full() {
+    fn positive_0_full() {
         let tokens = vec![
             PositiveValue,
             Zero,
@@ -272,7 +272,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_i16_0_negative_full() {
+    fn negative_0_full() {
         let tokens = vec![
             NegativValue,
             Zero,
@@ -296,7 +296,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_i16_max_unsigned() {
+    fn unsigned_max() {
         let tokens = vec![
             One, One, One, One, One, One, One, One, One, One, One, One, One, One, One, StructEnd,
         ];
@@ -304,7 +304,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_i16_max_positive() {
+    fn positive_max() {
         let tokens = vec![
             PositiveValue,
             One,
@@ -328,7 +328,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_i16_max_negative() {
+    fn negative_max() {
         let tokens = vec![
             NegativValue,
             One,
@@ -352,7 +352,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_i16_random_partial() {
+    fn random_partial() {
         let tokens = vec![
             NegativValue,
             One,
@@ -369,7 +369,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_i16_random_partial_1() {
+    fn random_partial_1() {
         let tokens = vec![PositiveValue, Zero, One, One, Zero, One, Zero, StructEnd];
         assert_eq!(parse_i16(&mut tokens.into_iter()), 0b011010);
     }

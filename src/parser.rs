@@ -734,5 +734,5 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_minimal_tokens() {}
+    fn minimal_tokens() {}
 }
