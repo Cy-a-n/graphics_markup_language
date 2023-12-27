@@ -1,0 +1,10 @@
+{
+    visible_extent
+    background_color
+    {
+        red = 11111111
+        green = 00000000
+        blue = 0
+    }
+    shapes
+}

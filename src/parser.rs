@@ -1,6 +1,7 @@
 mod i16_parser;
 mod u8_parser;
 
+use std::iter::Peekable;
 use std::vec::IntoIter;
 
 use self::ParserState::*;
@@ -11,7 +12,7 @@ use i16_parser::parse_i16;
 use u8_parser::parse_u8;
 
 pub fn to_main_draw_element(tokens: Vec<Token>) -> Main {
-    let mut tokens = tokens.into_iter();
+    let mut tokens: Peekable<IntoIter<Token>> = tokens.into_iter().peekable();
     let mut state = Start;
 
     loop {
@@ -23,6 +24,7 @@ pub fn to_main_draw_element(tokens: Vec<Token>) -> Main {
     }
 }
 
+#[derive(Debug)]
 enum ParserState {
     Start,
     MainStart(Main),
@@ -125,605 +127,698 @@ enum ParserState {
     MainShapesGroupShapesEnd(Main, Group),
     MainShapesEnd(Main),
     MainEnd(Main),
-    Err,
+    Err(Token),
 }
 
 impl ParserState {
-    fn next_state(self, tokens: &mut IntoIter<Token>) -> Self {
+    fn next_state(self, tokens: &mut Peekable<IntoIter<Token>>) -> Self {
         let token = tokens.next().expect("The source code ended prematurely");
         match self {
-            Err => panic!("The `next_state`-method should never be called on ParserState::Err"),
+            Err(previous_token) => {
+                panic!(
+                    "Encountered invalid token `{:?}`. Next token is {:?}",
+                    previous_token, token
+                )
+            }
             Start => match token {
-                StructStart => MainStart(Main::default()),
-                _ => panic!("Encountered invalid token"),
+                StructStart(line, offset) => MainStart(Main::default()),
+                _ => panic!(),
             },
             MainStart(main) => match token {
-                AttributVisibleExtent => MainVisibleExtent(main),
-                _ => Err,
+                AttributVisibleExtent(line, offset) => MainVisibleExtent(main),
+                _ => Err(token),
             },
             MainVisibleExtent(main) => match token {
-                AttributBackgroundColor => MainBackgroundColor(main),
-                StructStart => MainVisibleExtentStart(main),
-                _ => Err,
+                AttributBackgroundColor(line, offset) => MainBackgroundColor(main),
+                StructStart(line, offset) => MainVisibleExtentStart(main),
+                _ => Err(token),
             },
             MainVisibleExtentStart(main) => match token {
-                AttributX => MainVisibleExtentX(main),
-                _ => Err,
+                AttributX(line, offset) => MainVisibleExtentX(main),
+                _ => Err(token),
             },
             MainVisibleExtentX(mut main) => match token {
-                AttributY => MainVisibleExtentY(main),
-                PrimitiveValue => {
+                AttributY(line, offset) => MainVisibleExtentY(main),
+                PrimitiveValue(line, offset) => {
                     main.visible_extent.x = parse_i16(tokens);
                     MainVisibleExtentXEnd(main)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainVisibleExtentXEnd(main) => match token {
-                AttributY => MainVisibleExtentY(main),
-                _ => Err,
+                AttributY(line, offset) => MainVisibleExtentY(main),
+                _ => Err(token),
             },
             MainVisibleExtentY(mut main) => match token {
-                StructEnd => MainVisibleExtentEnd(main),
-                PrimitiveValue => {
+                StructEnd(line, offset) => MainVisibleExtentEnd(main),
+                PrimitiveValue(line, offset) => {
                     main.visible_extent.y = parse_i16(tokens);
                     MainVisibleExtentYEnd(main)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainVisibleExtentYEnd(main) => match token {
-                StructEnd => MainVisibleExtentEnd(main),
-                _ => Err,
+                StructEnd(line, offset) => MainVisibleExtentEnd(main),
+                _ => Err(token),
             },
             MainVisibleExtentEnd(main) => match token {
-                AttributBackgroundColor => MainBackgroundColor(main),
-                _ => Err,
+                AttributBackgroundColor(line, offset) => MainBackgroundColor(main),
+                _ => Err(token),
             },
             MainBackgroundColor(main) => match token {
-                AttributShapes => MainShapes(main),
-                StructStart => MainBackgroundColorStart(main),
-                _ => Err,
+                AttributShapes(line, offset) => MainShapes(main),
+                StructStart(line, offset) => MainBackgroundColorStart(main),
+                _ => Err(token),
             },
             MainBackgroundColorStart(main) => match token {
-                AttributRed => MainBackgroundColorRed(main),
-                _ => Err,
+                AttributRed(line, offset) => MainBackgroundColorRed(main),
+                _ => Err(token),
             },
             MainBackgroundColorRed(mut main) => match token {
-                AttributGreen => MainBackgroundColorGreen(main),
-                PrimitiveValue => {
+                AttributGreen(line, offset) => MainBackgroundColorGreen(main),
+                PrimitiveValue(line, offset) => {
                     main.background_color.red = parse_u8(tokens);
                     MainBackgroundColorRedEnd(main)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainBackgroundColorRedEnd(main) => match token {
-                AttributGreen => MainBackgroundColorGreen(main),
-                _ => Err,
+                AttributGreen(line, offset) => MainBackgroundColorGreen(main),
+                _ => Err(token),
             },
             MainBackgroundColorGreen(mut main) => match token {
-                AttributBlue => MainBackgroundColorBlue(main),
-                PrimitiveValue => {
+                AttributBlue(line, offset) => MainBackgroundColorBlue(main),
+                PrimitiveValue(line, offset) => {
                     main.background_color.green = parse_u8(tokens);
                     MainBackgroundColorGreenEnd(main)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainBackgroundColorGreenEnd(main) => match token {
-                AttributBlue => MainBackgroundColorBlue(main),
-                _ => Err,
+                AttributBlue(line, offset) => MainBackgroundColorBlue(main),
+                _ => Err(token),
             },
             MainBackgroundColorBlue(mut main) => match token {
-                StructEnd => MainBackgroundColorEnd(main),
-                PrimitiveValue => {
+                StructEnd(line, offset) => MainBackgroundColorEnd(main),
+                PrimitiveValue(line, offset) => {
                     main.background_color.blue = parse_u8(tokens);
                     MainBackgroundColorBlueEnd(main)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainBackgroundColorBlueEnd(main) => match token {
-                StructEnd => MainBackgroundColorEnd(main),
-                _ => Err,
+                StructEnd(line, offset) => MainBackgroundColorEnd(main),
+                _ => Err(token),
             },
             MainBackgroundColorEnd(main) => match token {
-                AttributShapes => MainShapes(main),
-                _ => Err,
+                AttributShapes(line, offset) => MainShapes(main),
+                _ => Err(token),
             },
             MainShapes(main) => match token {
-                StructEnd => MainEnd(main),
-                ArrayStart => MainShapesStart(main),
-                _ => Err,
+                StructEnd(line, offset) => MainEnd(main),
+                ArrayStart(line, offset) => MainShapesStart(main),
+                _ => Err(token),
             },
             MainShapesStart(main) => match token {
-                ArrayEnd => MainShapesEnd(main),
-                StructStart => MainShapesElementStart(main, AmbiguousElement::default()),
-                _ => Err,
+                ArrayEnd(line, offset) => MainShapesEnd(main),
+                StructStart(line, offset) => {
+                    MainShapesElementStart(main, AmbiguousElement::default())
+                }
+                _ => Err(token),
             },
             MainShapesElementStart(main, ambiguous_element) => match token {
-                AttributPosition => MainShapesElementPosition(main, ambiguous_element),
-                _ => Err,
+                AttributPosition(line, offset) => {
+                    MainShapesElementPosition(main, ambiguous_element)
+                }
+                _ => Err(token),
             },
             MainShapesElementPosition(main, ambiguous_element) => match token {
-                AttributRotation => MainShapesElementRotation(main, ambiguous_element),
-                StructStart => MainShapesElementPositionStart(main, ambiguous_element),
-                _ => Err,
+                AttributRotation(line, offset) => {
+                    MainShapesElementRotation(main, ambiguous_element)
+                }
+                StructStart(line, offset) => {
+                    MainShapesElementPositionStart(main, ambiguous_element)
+                }
+                _ => Err(token),
             },
             MainShapesElementPositionStart(main, ambiguous_element) => match token {
-                AttributX => MainShapesElementPositionX(main, ambiguous_element),
-                _ => Err,
+                AttributX(line, offset) => MainShapesElementPositionX(main, ambiguous_element),
+                _ => Err(token),
             },
             MainShapesElementPositionX(main, mut ambiguous_element) => match token {
-                AttributY => MainShapesElementPositionY(main, ambiguous_element),
-                PrimitiveValue => {
+                AttributY(line, offset) => MainShapesElementPositionY(main, ambiguous_element),
+                PrimitiveValue(line, offset) => {
                     ambiguous_element.position.x = parse_i16(tokens);
                     MainShapesElementPositionXEnd(main, ambiguous_element)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesElementPositionXEnd(main, ambiguous_element) => match token {
-                AttributY => MainShapesElementPositionY(main, ambiguous_element),
-                _ => Err,
+                AttributY(line, offset) => MainShapesElementPositionY(main, ambiguous_element),
+                _ => Err(token),
             },
             MainShapesElementPositionY(mut main, ambiguous_element) => match token {
-                StructEnd => MainShapesElementPositionEnd(main, ambiguous_element),
-                PrimitiveValue => {
+                StructEnd(line, offset) => MainShapesElementPositionEnd(main, ambiguous_element),
+                PrimitiveValue(line, offset) => {
                     main.visible_extent.x = parse_i16(tokens);
                     MainShapesElementPositionYEnd(main, ambiguous_element)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesElementPositionYEnd(main, ambiguous_element) => match token {
-                StructEnd => MainShapesElementPositionEnd(main, ambiguous_element),
-                _ => Err,
+                StructEnd(line, offset) => MainShapesElementPositionEnd(main, ambiguous_element),
+                _ => Err(token),
             },
             MainShapesElementPositionEnd(main, ambiguous_element) => match token {
-                AttributRotation => MainShapesElementRotation(main, ambiguous_element),
-                _ => Err,
+                AttributRotation(line, offset) => {
+                    MainShapesElementRotation(main, ambiguous_element)
+                }
+                _ => Err(token),
             },
             MainShapesElementRotation(main, mut ambiguous_element) => match token {
-                AttributWidth => MainShapesPolygonWidth(main, ambiguous_element.into_polygon()),
-                AttributShapes => MainShapesGroupShapes(main, ambiguous_element.into_group()),
-                PrimitiveValue => {
+                AttributWidth(line, offset) => {
+                    MainShapesPolygonWidth(main, ambiguous_element.into_polygon())
+                }
+                AttributShapes(line, offset) => {
+                    MainShapesGroupShapes(main, ambiguous_element.into_group())
+                }
+                PrimitiveValue(line, offset) => {
                     ambiguous_element.rotation = parse_u8(tokens);
                     MainShapesElementRotationEnd(main, ambiguous_element)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesElementRotationEnd(main, ambiguous_element) => match token {
-                AttributWidth => MainShapesPolygonWidth(main, ambiguous_element.into_polygon()),
-                AttributShapes => MainShapesGroupShapes(main, ambiguous_element.into_group()),
-                _ => Err,
+                AttributWidth(line, offset) => {
+                    MainShapesPolygonWidth(main, ambiguous_element.into_polygon())
+                }
+                AttributShapes(line, offset) => {
+                    MainShapesGroupShapes(main, ambiguous_element.into_group())
+                }
+                _ => Err(token),
             },
             MainShapesPolygonWidth(main, mut polygon) => match token {
-                AttributBorderColor => MainShapesPolygonBorderColor(main, polygon),
-                PrimitiveValue => {
+                AttributBorderColor(line, offset) => MainShapesPolygonBorderColor(main, polygon),
+                PrimitiveValue(line, offset) => {
                     polygon.width = parse_i16(tokens);
                     MainShapesPolygonWidthEnd(main, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonWidthEnd(main, polygon) => match token {
-                AttributBorderColor => MainShapesPolygonBorderColor(main, polygon),
-                _ => Err,
+                AttributBorderColor(line, offset) => MainShapesPolygonBorderColor(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonBorderColor(main, polygon) => match token {
-                AttributFillColor => MainShapesPolygonFillColor(main, polygon),
-                StructStart => MainShapesPolygonBorderColorStart(main, polygon),
-                _ => Err,
+                AttributFillColor(line, offset) => MainShapesPolygonFillColor(main, polygon),
+                StructStart(line, offset) => MainShapesPolygonBorderColorStart(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonBorderColorStart(main, polygon) => match token {
-                AttributRed => MainShapesPolygonBorderColorRed(main, polygon),
-                _ => Err,
+                AttributRed(line, offset) => MainShapesPolygonBorderColorRed(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonBorderColorRed(main, mut polygon) => match token {
-                AttributGreen => MainShapesPolygonBorderColorGreen(main, polygon),
-                PrimitiveValue => {
+                AttributGreen(line, offset) => MainShapesPolygonBorderColorGreen(main, polygon),
+                PrimitiveValue(line, offset) => {
                     polygon.border_color.red = parse_u8(tokens);
                     MainShapesPolygonBorderColorRedEnd(main, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonBorderColorRedEnd(main, polygon) => match token {
-                AttributGreen => MainShapesPolygonBorderColorGreen(main, polygon),
-                _ => Err,
+                AttributGreen(line, offset) => MainShapesPolygonBorderColorGreen(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonBorderColorGreen(main, mut polygon) => match token {
-                AttributBlue => MainShapesPolygonBorderColorBlue(main, polygon),
-                PrimitiveValue => {
+                AttributBlue(line, offset) => MainShapesPolygonBorderColorBlue(main, polygon),
+                PrimitiveValue(line, offset) => {
                     polygon.border_color.green = parse_u8(tokens);
                     MainShapesPolygonBorderColorGreenEnd(main, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonBorderColorGreenEnd(main, polygon) => match token {
-                AttributBlue => MainShapesPolygonBorderColorBlue(main, polygon),
-                _ => Err,
+                AttributBlue(line, offset) => MainShapesPolygonBorderColorBlue(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonBorderColorBlue(main, mut polygon) => match token {
-                StructEnd => MainShapesPolygonBorderColorEnd(main, polygon),
-                PrimitiveValue => {
+                StructEnd(line, offset) => MainShapesPolygonBorderColorEnd(main, polygon),
+                PrimitiveValue(line, offset) => {
                     polygon.border_color.blue = parse_u8(tokens);
                     MainShapesPolygonBorderColorBlueEnd(main, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonBorderColorBlueEnd(main, polygon) => match token {
-                StructEnd => MainShapesPolygonBorderColorEnd(main, polygon),
-                _ => Err,
+                StructEnd(line, offset) => MainShapesPolygonBorderColorEnd(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonBorderColorEnd(main, polygon) => match token {
-                AttributFillColor => MainShapesPolygonFillColor(main, polygon),
-                _ => Err,
+                AttributFillColor(line, offset) => MainShapesPolygonFillColor(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonFillColor(main, polygon) => match token {
-                AttributVertices => MainShapesPolygonVertices(main, polygon),
-                StructStart => MainShapesPolygonFillColorStart(main, polygon),
-                _ => Err,
+                AttributVertices(line, offset) => MainShapesPolygonVertices(main, polygon),
+                StructStart(line, offset) => MainShapesPolygonFillColorStart(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonFillColorStart(main, polygon) => match token {
-                AttributRed => MainShapesPolygonFillColorRed(main, polygon),
-                _ => Err,
+                AttributRed(line, offset) => MainShapesPolygonFillColorRed(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonFillColorRed(main, mut polygon) => match token {
-                AttributGreen => MainShapesPolygonFillColorGreen(main, polygon),
-                PrimitiveValue => {
+                AttributGreen(line, offset) => MainShapesPolygonFillColorGreen(main, polygon),
+                PrimitiveValue(line, offset) => {
                     polygon.fill_color.red = parse_u8(tokens);
                     MainShapesPolygonFillColorRedEnd(main, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonFillColorRedEnd(main, polygon) => match token {
-                AttributGreen => MainShapesPolygonFillColorGreen(main, polygon),
-                _ => Err,
+                AttributGreen(line, offset) => MainShapesPolygonFillColorGreen(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonFillColorGreen(main, mut polygon) => match token {
-                AttributBlue => MainShapesPolygonFillColorBlue(main, polygon),
-                PrimitiveValue => {
+                AttributBlue(line, offset) => MainShapesPolygonFillColorBlue(main, polygon),
+                PrimitiveValue(line, offset) => {
                     polygon.fill_color.green = parse_u8(tokens);
                     MainShapesPolygonFillColorGreenEnd(main, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonFillColorGreenEnd(main, polygon) => match token {
-                AttributBlue => MainShapesPolygonFillColorBlue(main, polygon),
-                _ => Err,
+                AttributBlue(line, offset) => MainShapesPolygonFillColorBlue(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonFillColorBlue(main, mut polygon) => match token {
-                StructEnd => MainShapesPolygonFillColorEnd(main, polygon),
-                PrimitiveValue => {
+                StructEnd(line, offset) => MainShapesPolygonFillColorEnd(main, polygon),
+                PrimitiveValue(line, offset) => {
                     polygon.fill_color.blue = parse_u8(tokens);
                     MainShapesPolygonFillColorBlueEnd(main, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonFillColorBlueEnd(main, polygon) => match token {
-                StructEnd => MainShapesPolygonFillColorEnd(main, polygon),
-                _ => Err,
+                StructEnd(line, offset) => MainShapesPolygonFillColorEnd(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonFillColorEnd(main, polygon) => match token {
-                AttributVertices => MainShapesPolygonVertices(main, polygon),
-                _ => Err,
+                AttributVertices(line, offset) => MainShapesPolygonVertices(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonVertices(mut main, polygon) => match token {
-                StructEnd => {
+                StructEnd(line, offset) => {
                     main.shapes.push(Shape::Polygon(polygon));
                     MainShapesStart(main)
                 }
-                ArrayStart => MainShapesPolygonVerticesStart(main, polygon),
-                _ => Err,
+                ArrayStart(line, offset) => MainShapesPolygonVerticesStart(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonVerticesStart(main, polygon) => match token {
-                ArrayEnd => MainShapesPolygonVerticesEnd(main, polygon),
-                StructStart => MainShapesPolygonVerticesVertexStart(main, polygon),
-                _ => Err,
+                ArrayEnd(line, offset) => MainShapesPolygonVerticesEnd(main, polygon),
+                StructStart(line, offset) => MainShapesPolygonVerticesVertexStart(main, polygon),
+                _ => Err(token),
             },
             MainShapesPolygonVerticesVertexStart(main, polygon) => match token {
-                AttributX => MainShapesPolygonVerticesVertexX(main, polygon, Point::default()),
-                _ => Err,
+                AttributX(line, offset) => {
+                    MainShapesPolygonVerticesVertexX(main, polygon, Point::default())
+                }
+                _ => Err(token),
             },
             MainShapesPolygonVerticesVertexX(main, polygon, mut vertex) => match token {
-                AttributY => MainShapesPolygonVerticesVertexY(main, polygon, vertex),
-                PrimitiveValue => {
+                AttributY(line, offset) => MainShapesPolygonVerticesVertexY(main, polygon, vertex),
+                PrimitiveValue(line, offset) => {
                     vertex.x = parse_i16(tokens);
                     MainShapesPolygonVerticesVertexXEnd(main, polygon, vertex)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonVerticesVertexXEnd(main, polygon, vertex) => match token {
-                AttributY => MainShapesPolygonVerticesVertexY(main, polygon, vertex),
-                _ => Err,
+                AttributY(line, offset) => MainShapesPolygonVerticesVertexY(main, polygon, vertex),
+                _ => Err(token),
             },
             MainShapesPolygonVerticesVertexY(main, mut polygon, mut vertex) => match token {
-                StructEnd => {
+                StructEnd(line, offset) => {
                     polygon.vertices.push(vertex);
                     MainShapesPolygonVerticesStart(main, polygon)
                 }
-                PrimitiveValue => {
+                PrimitiveValue(line, offset) => {
                     vertex.y = parse_i16(tokens);
                     MainShapesPolygonVerticesVertexYEnd(main, polygon, vertex)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonVerticesVertexYEnd(main, mut polygon, vertex) => match token {
-                StructEnd => {
+                StructEnd(line, offset) => {
                     polygon.vertices.push(vertex);
                     MainShapesPolygonVerticesStart(main, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesPolygonVerticesEnd(mut main, polygon) => match token {
-                StructEnd => {
+                StructEnd(line, offset) => {
                     main.shapes.push(Shape::Polygon(polygon));
                     MainShapesStart(main)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapes(mut main, group) => match token {
-                StructEnd => {
+                StructEnd(line, offset) => {
                     main.shapes.push(Shape::Group(group));
                     MainShapesStart(main)
                 } // TODO: Add default group
-                ArrayStart => MainShapesGroupShapesStart(main, group),
-                _ => Err,
+                ArrayStart(line, offset) => MainShapesGroupShapesStart(main, group),
+                _ => Err(token),
             },
             MainShapesGroupShapesStart(main, group) => match token {
-                ArrayEnd => MainShapesGroupShapesEnd(main, group),
-                StructStart => MainShapesGroupShapesPolygonStart(main, group, Polygon::default()),
-                _ => Err,
+                ArrayEnd(line, offset) => MainShapesGroupShapesEnd(main, group),
+                StructStart(line, offset) => {
+                    MainShapesGroupShapesPolygonStart(main, group, Polygon::default())
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonStart(main, group, polygon) => match token {
-                AttributPosition => MainShapesGroupShapesPolygonPosition(main, group, polygon),
-                _ => Err,
+                AttributPosition(line, offset) => {
+                    MainShapesGroupShapesPolygonPosition(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonPosition(main, group, polygon) => match token {
-                AttributRotation => MainShapesGroupShapesPolygonRotation(main, group, polygon),
-                StructStart => MainShapesGroupShapesPolygonPositionStart(main, group, polygon),
-                _ => Err,
+                AttributRotation(line, offset) => {
+                    MainShapesGroupShapesPolygonRotation(main, group, polygon)
+                }
+                StructStart(line, offset) => {
+                    MainShapesGroupShapesPolygonPositionStart(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonPositionStart(main, group, polygon) => match token {
-                AttributX => MainShapesGroupShapesPolygonPositionX(main, group, polygon),
-                _ => Err,
+                AttributX(line, offset) => {
+                    MainShapesGroupShapesPolygonPositionX(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonPositionX(main, group, mut polygon) => match token {
-                AttributY => MainShapesGroupShapesPolygonPositionY(main, group, polygon),
-                PrimitiveValue => {
+                AttributY(line, offset) => {
+                    MainShapesGroupShapesPolygonPositionY(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.position.x = parse_i16(tokens);
                     MainShapesGroupShapesPolygonPositionXEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonPositionXEnd(main, group, polygon) => match token {
-                AttributY => MainShapesGroupShapesPolygonPositionY(main, group, polygon),
-                _ => Err,
+                AttributY(line, offset) => {
+                    MainShapesGroupShapesPolygonPositionY(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonPositionY(main, group, mut polygon) => match token {
-                StructEnd => MainShapesGroupShapesPolygonPositionEnd(main, group, polygon),
-                PrimitiveValue => {
+                StructEnd(line, offset) => {
+                    MainShapesGroupShapesPolygonPositionEnd(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.position.y = parse_i16(tokens);
                     MainShapesGroupShapesPolygonPositionYEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonPositionYEnd(main, group, polygon) => match token {
-                StructEnd => MainShapesGroupShapesPolygonPositionEnd(main, group, polygon),
-                _ => Err,
+                StructEnd(line, offset) => {
+                    MainShapesGroupShapesPolygonPositionEnd(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonPositionEnd(main, group, polygon) => match token {
-                AttributRotation => MainShapesGroupShapesPolygonRotation(main, group, polygon),
-                _ => Err,
+                AttributRotation(line, offset) => {
+                    MainShapesGroupShapesPolygonRotation(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonRotation(main, group, mut polygon) => match token {
-                AttributWidth => MainShapesGroupShapesPolygonWidth(main, group, polygon),
-                PrimitiveValue => {
+                AttributWidth(line, offset) => {
+                    MainShapesGroupShapesPolygonWidth(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.rotation = parse_u8(tokens);
                     MainShapesGroupShapesPolygonRotationEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonRotationEnd(main, group, polygon) => match token {
-                AttributWidth => MainShapesGroupShapesPolygonWidth(main, group, polygon),
-                _ => Err,
+                AttributWidth(line, offset) => {
+                    MainShapesGroupShapesPolygonWidth(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonWidth(main, group, mut polygon) => match token {
-                AttributBorderColor => {
+                AttributBorderColor(line, offset) => {
                     MainShapesGroupShapesPolygonBorderColor(main, group, polygon)
                 }
-                PrimitiveValue => {
+                PrimitiveValue(line, offset) => {
                     polygon.width = parse_i16(tokens);
                     MainShapesGroupShapesPolygonWidthEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonWidthEnd(main, group, polygon) => match token {
-                AttributBorderColor => {
+                AttributBorderColor(line, offset) => {
                     MainShapesGroupShapesPolygonBorderColor(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColor(main, group, polygon) => match token {
-                AttributFillColor => MainShapesGroupShapesPolygonFillColor(main, group, polygon),
-                StructStart => MainShapesGroupShapesPolygonBorderColorStart(main, group, polygon),
-                _ => Err,
+                AttributFillColor(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColor(main, group, polygon)
+                }
+                StructStart(line, offset) => {
+                    MainShapesGroupShapesPolygonBorderColorStart(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColorStart(main, group, polygon) => match token {
-                AttributRed => MainShapesGroupShapesPolygonBorderColorRed(main, group, polygon),
-                _ => Err,
+                AttributRed(line, offset) => {
+                    MainShapesGroupShapesPolygonBorderColorRed(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColorRed(main, group, mut polygon) => match token {
-                AttributGreen => MainShapesGroupShapesPolygonBorderColorGreen(main, group, polygon),
-                PrimitiveValue => {
+                AttributGreen(line, offset) => {
+                    MainShapesGroupShapesPolygonBorderColorGreen(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.border_color.red = parse_u8(tokens);
                     MainShapesGroupShapesPolygonBorderColorRedEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColorRedEnd(main, group, polygon) => match token {
-                AttributGreen => MainShapesGroupShapesPolygonBorderColorGreen(main, group, polygon),
-                _ => Err,
+                AttributGreen(line, offset) => {
+                    MainShapesGroupShapesPolygonBorderColorGreen(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColorGreen(main, group, mut polygon) => match token {
-                AttributBlue => MainShapesGroupShapesPolygonBorderColorBlue(main, group, polygon),
-                PrimitiveValue => {
+                AttributBlue(line, offset) => {
+                    MainShapesGroupShapesPolygonBorderColorBlue(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.border_color.green = parse_u8(tokens);
                     MainShapesGroupShapesPolygonBorderColorGreenEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColorGreenEnd(main, group, polygon) => match token {
-                AttributBlue => MainShapesGroupShapesPolygonBorderColorBlue(main, group, polygon),
-                _ => Err,
+                AttributBlue(line, offset) => {
+                    MainShapesGroupShapesPolygonBorderColorBlue(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColorBlue(main, group, mut polygon) => match token {
-                StructEnd => MainShapesGroupShapesPolygonBorderColorEnd(main, group, polygon),
-                PrimitiveValue => {
+                StructEnd(line, offset) => {
+                    MainShapesGroupShapesPolygonBorderColorEnd(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.border_color.blue = parse_u8(tokens);
                     MainShapesGroupShapesPolygonBorderColorBlueEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColorBlueEnd(main, group, polygon) => match token {
-                StructEnd => MainShapesGroupShapesPolygonBorderColorEnd(main, group, polygon),
-                _ => Err,
+                StructEnd(line, offset) => {
+                    MainShapesGroupShapesPolygonBorderColorEnd(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonBorderColorEnd(main, group, polygon) => match token {
-                AttributFillColor => MainShapesGroupShapesPolygonFillColor(main, group, polygon),
-                _ => Err,
+                AttributFillColor(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColor(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColor(main, group, polygon) => match token {
-                AttributVertices => MainShapesGroupShapesPolygonVertices(main, group, polygon),
-                StructStart => MainShapesGroupShapesPolygonFillColorStart(main, group, polygon),
-                _ => Err,
+                AttributVertices(line, offset) => {
+                    MainShapesGroupShapesPolygonVertices(main, group, polygon)
+                }
+                StructStart(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColorStart(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColorStart(main, group, polygon) => match token {
-                AttributRed => MainShapesGroupShapesPolygonFillColorRed(main, group, polygon),
-                _ => Err,
+                AttributRed(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColorRed(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColorRed(main, group, mut polygon) => match token {
-                AttributGreen => MainShapesGroupShapesPolygonFillColorGreen(main, group, polygon),
-                PrimitiveValue => {
+                AttributGreen(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColorGreen(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.fill_color.red = parse_u8(tokens);
                     MainShapesGroupShapesPolygonFillColorRedEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColorRedEnd(main, group, polygon) => match token {
-                AttributGreen => MainShapesGroupShapesPolygonFillColorGreen(main, group, polygon),
-                _ => Err,
+                AttributGreen(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColorGreen(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColorGreen(main, group, mut polygon) => match token {
-                AttributBlue => MainShapesGroupShapesPolygonFillColorBlue(main, group, polygon),
-                PrimitiveValue => {
+                AttributBlue(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColorBlue(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.fill_color.green = parse_u8(tokens);
                     MainShapesGroupShapesPolygonFillColorGreenEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColorGreenEnd(main, group, polygon) => match token {
-                AttributBlue => MainShapesGroupShapesPolygonFillColorBlue(main, group, polygon),
-                _ => Err,
+                AttributBlue(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColorBlue(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColorBlue(main, group, mut polygon) => match token {
-                StructEnd => MainShapesGroupShapesPolygonFillColorEnd(main, group, polygon),
-                PrimitiveValue => {
+                StructEnd(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColorEnd(main, group, polygon)
+                }
+                PrimitiveValue(line, offset) => {
                     polygon.fill_color.blue = parse_u8(tokens);
                     MainShapesGroupShapesPolygonFillColorBlueEnd(main, group, polygon)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColorBlueEnd(main, group, polygon) => match token {
-                StructEnd => MainShapesGroupShapesPolygonFillColorEnd(main, group, polygon),
-                _ => Err,
+                StructEnd(line, offset) => {
+                    MainShapesGroupShapesPolygonFillColorEnd(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonFillColorEnd(main, group, polygon) => match token {
-                AttributVertices => MainShapesGroupShapesPolygonVertices(main, group, polygon),
-                _ => Err,
+                AttributVertices(line, offset) => {
+                    MainShapesGroupShapesPolygonVertices(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonVertices(main, mut group, polygon) => match token {
-                StructEnd => {
+                StructEnd(line, offset) => {
                     group.shapes.push(polygon);
                     MainShapesGroupShapesStart(main, group)
                 }
-                ArrayStart => MainShapesGroupShapesPolygonVerticesStart(main, group, polygon),
-                _ => Err,
+                ArrayStart(line, offset) => {
+                    MainShapesGroupShapesPolygonVerticesStart(main, group, polygon)
+                }
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonVerticesStart(main, group, polygon) => match token {
-                ArrayEnd => MainShapesGroupShapesPolygonVerticesEnd(main, group, polygon),
-                StructStart => MainShapesGroupShapesPolygonVerticesVertexStart(
+                ArrayEnd(line, offset) => {
+                    MainShapesGroupShapesPolygonVerticesEnd(main, group, polygon)
+                }
+                StructStart(line, offset) => MainShapesGroupShapesPolygonVerticesVertexStart(
                     main,
                     group,
                     polygon,
                     Point::default(),
                 ),
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesPolygonVerticesVertexStart(main, group, polygon, vertex) => {
                 match token {
-                    AttributX => {
+                    AttributX(line, offset) => {
                         MainShapesGroupShapesPolygonVerticesVertexX(main, group, polygon, vertex)
                     }
-                    _ => Err,
+                    _ => Err(token),
                 }
             }
             MainShapesGroupShapesPolygonVerticesVertexX(main, group, polygon, mut vertex) => {
                 match token {
-                    AttributY => {
+                    AttributY(line, offset) => {
                         MainShapesGroupShapesPolygonVerticesVertexY(main, group, polygon, vertex)
                     }
-                    PrimitiveValue => {
+                    PrimitiveValue(line, offset) => {
                         vertex.x = parse_i16(tokens);
                         MainShapesGroupShapesPolygonVerticesVertexXEnd(main, group, polygon, vertex)
                     }
-                    _ => Err,
+                    _ => Err(token),
                 }
             }
             MainShapesGroupShapesPolygonVerticesVertexXEnd(main, group, polygon, vertex) => {
                 match token {
-                    AttributY => {
+                    AttributY(line, offset) => {
                         MainShapesGroupShapesPolygonVerticesVertexY(main, group, polygon, vertex)
                     }
-                    _ => Err,
+                    _ => Err(token),
                 }
             }
             MainShapesGroupShapesPolygonVerticesVertexY(main, group, mut polygon, mut vertex) => {
                 match token {
-                    StructEnd => {
+                    StructEnd(line, offset) => {
                         polygon.vertices.push(vertex);
                         MainShapesGroupShapesPolygonVerticesStart(main, group, polygon)
                     }
-                    PrimitiveValue => {
+                    PrimitiveValue(line, offset) => {
                         vertex.y = parse_i16(tokens);
                         MainShapesGroupShapesPolygonVerticesVertexYEnd(main, group, polygon, vertex)
                     }
-                    _ => Err,
+                    _ => Err(token),
                 }
             }
             MainShapesGroupShapesPolygonVerticesVertexYEnd(main, group, mut polygon, vertex) => {
                 match token {
-                    StructEnd => {
+                    StructEnd(line, offset) => {
                         polygon.vertices.push(vertex);
                         MainShapesGroupShapesPolygonVerticesStart(main, group, polygon)
                     }
-                    _ => Err,
+                    _ => Err(token),
                 }
             }
             MainShapesGroupShapesPolygonVerticesEnd(main, mut group, polygon) => match token {
-                StructEnd => {
+                StructEnd(line, offset) => {
                     group.shapes.push(polygon);
                     MainShapesGroupShapesStart(main, group)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesGroupShapesEnd(mut main, group) => match token {
-                StructEnd => {
+                StructEnd(line, offset) => {
                     main.shapes.push(Shape::Group(group));
                     MainShapesStart(main)
                 }
-                _ => Err,
+                _ => Err(token),
             },
             MainShapesEnd(main) => match token {
-                StructEnd => MainEnd(main),
-                _ => Err,
+                StructEnd(line, offset) => MainEnd(main),
+                _ => Err(token),
             },
             MainEnd(_) => match token {
-                _ => Err,
+                _ => Err(token),
             },
         }
     }
@@ -734,5 +829,429 @@ mod tests {
     use super::*;
 
     #[test]
-    fn minimal_tokens() {}
+    fn minimal_tokens() {
+        let tokens = vec![
+            StructStart(0, 0),
+            AttributVisibleExtent(0, 0),
+            AttributBackgroundColor(0, 0),
+            AttributShapes(0, 0),
+            StructEnd(0, 0),
+        ];
+        let expected = Main::default();
+
+        assert_eq!(to_main_draw_element(tokens), expected);
+    }
+
+    #[test]
+    fn custom_visible_extent() {
+        let tokens = vec![
+            StructStart(0, 0),
+            AttributVisibleExtent(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            PositiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            NegativeValue(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            AttributBackgroundColor(0, 0),
+            AttributShapes(0, 0),
+            StructEnd(0, 0),
+        ];
+        let expected = Main {
+            visible_extent: Point {
+                x: 0b10001111,
+                y: -0b001010101111111,
+            },
+            background_color: Color::default(),
+            shapes: vec![],
+        };
+
+        assert_eq!(to_main_draw_element(tokens), expected);
+    }
+
+    #[test]
+    fn custom_background_color() {
+        let tokens = vec![
+            StructStart(0, 0),
+            AttributVisibleExtent(0, 0),
+            AttributBackgroundColor(0, 0),
+            StructStart(0, 0),
+            AttributRed(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            AttributGreen(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            Zero(0, 0),
+            AttributBlue(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            StructEnd(0, 0),
+            AttributShapes(0, 0),
+            StructEnd(0, 0),
+        ];
+        let mut expected = Main::default();
+        expected.background_color = Color {
+            red: 0b11111111,
+            green: 0b00000000,
+            blue: 0,
+        };
+
+        assert_eq!(to_main_draw_element(tokens), expected);
+    }
+
+    #[test]
+    fn custom_full() {
+        let tokens = vec![
+            StructStart(0, 0),
+            AttributVisibleExtent(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            NegativeValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            AttributBackgroundColor(0, 0),
+            StructStart(0, 0),
+            AttributRed(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            AttributGreen(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            AttributBlue(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            AttributShapes(0, 0),
+            ArrayStart(0, 0),
+            StructStart(0, 0),
+            AttributPosition(0, 0),
+            AttributRotation(0, 0),
+            AttributWidth(0, 0),
+            AttributBorderColor(0, 0),
+            AttributFillColor(0, 0),
+            AttributVertices(0, 0),
+            StructEnd(0, 0),
+            StructStart(0, 0),
+            AttributPosition(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            PositiveValue(0, 0),
+            Zero(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            NegativeValue(0, 0),
+            Zero(0, 0),
+            StructEnd(0, 0),
+            AttributRotation(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            AttributShapes(0, 0),
+            ArrayStart(0, 0),
+            StructStart(0, 0),
+            AttributPosition(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            StructEnd(0, 0),
+            AttributRotation(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            One(0, 0),
+            AttributWidth(0, 0),
+            PrimitiveValue(0, 0),
+            NegativeValue(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            AttributBorderColor(0, 0),
+            StructStart(0, 0),
+            AttributRed(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            AttributGreen(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            AttributBlue(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            AttributFillColor(0, 0),
+            StructStart(0, 0),
+            AttributRed(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            One(0, 0),
+            AttributGreen(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            AttributBlue(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            StructEnd(0, 0),
+            AttributVertices(0, 0),
+            ArrayStart(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            NegativeValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            StructEnd(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            NegativeValue(0, 0),
+            One(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            ArrayEnd(0, 0),
+            StructEnd(0, 0),
+            StructStart(0, 0),
+            AttributPosition(0, 0),
+            AttributRotation(0, 0),
+            AttributWidth(0, 0),
+            AttributBorderColor(0, 0),
+            AttributFillColor(0, 0),
+            AttributVertices(0, 0),
+            StructEnd(0, 0),
+            ArrayEnd(0, 0),
+            StructEnd(0, 0),
+            StructStart(0, 0),
+            AttributPosition(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            PositiveValue(0, 0),
+            Zero(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            NegativeValue(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            AttributRotation(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            AttributWidth(0, 0),
+            PrimitiveValue(0, 0),
+            NegativeValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            AttributBorderColor(0, 0),
+            StructStart(0, 0),
+            AttributRed(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            AttributGreen(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            AttributBlue(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            AttributFillColor(0, 0),
+            StructStart(0, 0),
+            AttributRed(0, 0),
+            PrimitiveValue(0, 0),
+            Zero(0, 0),
+            AttributGreen(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            AttributBlue(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            StructEnd(0, 0),
+            AttributVertices(0, 0),
+            ArrayStart(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            StructStart(0, 0),
+            AttributX(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            AttributY(0, 0),
+            PrimitiveValue(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            Zero(0, 0),
+            One(0, 0),
+            StructEnd(0, 0),
+            ArrayEnd(0, 0),
+            StructEnd(0, 0),
+            StructStart(0, 0),
+            AttributPosition(0, 0),
+            AttributRotation(0, 0),
+            AttributShapes(0, 0),
+            StructEnd(0, 0),
+            ArrayEnd(0, 0),
+            StructEnd(0, 0),
+        ];
+        let expected = Main {
+            visible_extent: Point {
+                x: -0b10,
+                y: 0b11111,
+            },
+            background_color: Color {
+                red: 1,
+                green: 0,
+                blue: 0b11,
+            },
+            shapes: vec![
+                Shape::Polygon(AmbiguousElement::default().into_polygon()),
+                Shape::Group(Group {
+                    position: Point { x: 0, y: 0 },
+                    rotation: 0,
+                    shapes: vec![
+                        Polygon {
+                            position: Point { x: 0, y: 0 },
+                            rotation: 0,
+                            width: -0b111111111111111,
+                            border_color: Color {
+                                red: 1,
+                                green: 0,
+                                blue: 0b11,
+                            },
+                            fill_color: Color {
+                                red: 0b11111111,
+                                green: 0,
+                                blue: 10,
+                            },
+                            vertices: vec![Point { x: -0b10, y: 0b10 }, Point { x: -1, y: 1 }],
+                        },
+                        AmbiguousElement::default().into_polygon(),
+                    ],
+                }),
+                Shape::Polygon(Polygon {
+                    position: Point { x: 0, y: -1 },
+                    rotation: 1,
+                    width: -0b10,
+                    border_color: Color {
+                        red: 1,
+                        green: 0,
+                        blue: 0b101,
+                    },
+                    fill_color: Color {
+                        red: 0,
+                        green: 1,
+                        blue: 0b10,
+                    },
+                    vertices: vec![
+                        Point {
+                            x: 0b1010,
+                            y: 0b10101,
+                        },
+                        Point {
+                            x: 0b101010,
+                            y: 0b1010101,
+                        },
+                    ],
+                }),
+                Shape::Group(AmbiguousElement::default().into_group()),
+            ],
+        };
+        assert_eq!(to_main_draw_element(tokens), expected);
+    }
 }

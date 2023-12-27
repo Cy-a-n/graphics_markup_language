@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
@@ -15,7 +15,7 @@ impl Color {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Point {
     pub x: i16,
     pub y: i16,
@@ -27,7 +27,7 @@ impl Point {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Polygon {
     pub position: Point,
     pub rotation: u8,
@@ -50,20 +50,20 @@ impl Polygon {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Group {
     pub position: Point,
     pub rotation: u8,
     pub shapes: Vec<Polygon>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Shape {
     Polygon(Polygon),
     Group(Group),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AmbiguousElement {
     pub position: Point,
     pub rotation: u8,
@@ -97,7 +97,7 @@ impl AmbiguousElement {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Main {
     pub visible_extent: Point,
     pub background_color: Color,

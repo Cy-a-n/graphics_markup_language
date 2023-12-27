@@ -1,0 +1,9 @@
+{
+    visible_extent
+    {
+        x = +10001111
+        y = -001010101111111
+    }
+    background_color
+    shapes
+}
