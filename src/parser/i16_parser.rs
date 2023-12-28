@@ -1,11 +1,13 @@
-use std::iter::Peekable;
+use std::iter::{Enumerate, Peekable};
 use std::vec::IntoIter;
 
 use self::States::*;
-use crate::token::Token::*;
+use crate::token::TokenValue::*;
 use crate::token::*;
 
-pub(super) fn parse_i16(mut tokens: &mut Peekable<IntoIter<Token>>) -> i16 {
+use super::parser_panic;
+
+pub(super) fn parse_i16(mut tokens: &mut Peekable<Enumerate<IntoIter<Token>>>) -> i16 {
     let mut state = Start;
 
     loop {
@@ -41,45 +43,47 @@ enum States {
 }
 
 impl States {
-    fn next_state(self, tokens: &mut Peekable<IntoIter<Token>>) -> Self {
-        let token = tokens.peek().expect("The source code ended prematurely");
+    fn next_state(self, tokens: &mut Peekable<Enumerate<IntoIter<Token>>>) -> Self {
+        let (index, token) = tokens.peek().expect("The source code ended prematurely");
+        let token_value = token.value();
+
         match self {
-            Start => match token {
-                PositiveValue(line, offset) => {
+            Start => match token_value {
+                PositiveValue => {
                     tokens.next();
                     Sign(true)
                 }
-                NegativeValue(line, offset) => {
+                NegativeValue => {
                     tokens.next();
                     Sign(false)
                 }
-                Zero(line, offset) => {
+                Zero => {
                     tokens.next();
                     Digit0(0, true)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit0(1, true)
                 }
-                _ => panic!("Expected an i16 beginning with either an sign or a digit."),
+                _ => parser_panic(token, index),
             },
-            Sign(positive) => match token {
-                Zero(line, offset) => {
+            Sign(positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit0(0, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit0(1, positive)
                 }
                 _ => panic!("Expected at least one digit after the sign."),
             },
-            Digit0(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit0(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit1(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit1((number << 1) + 1, positive)
                 }
@@ -88,144 +92,144 @@ impl States {
                     End(number, positive)
                 }
             },
-            Digit1(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit1(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit1(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit2((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit2(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit2(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit3(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit3((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit3(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit3(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit4(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit4((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit4(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit4(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit5(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit5((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit5(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit5(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit6(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit6((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit6(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit6(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit7(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit7((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit7(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit7(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit8(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit8((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit8(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit8(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit9(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit9((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit9(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit9(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit10(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit10((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit10(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit10(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit11(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit11((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit11(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit11(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit12(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit12((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit12(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit12(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     Digit13(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     Digit13((number << 1) + 1, positive)
                 }
                 _ => End(number, positive),
             },
-            Digit13(number, positive) => match token {
-                Zero(line, offset) => {
+            Digit13(number, positive) => match token_value {
+                Zero => {
                     tokens.next();
                     End(number << 1, positive)
                 }
-                One(line, offset) => {
+                One => {
                     tokens.next();
                     End((number << 1) + 1, positive)
                 }
@@ -242,183 +246,186 @@ mod tests {
 
     #[test]
     fn unsigned_0_full() {
-        let tokens = vec![
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            StructEnd(0, 0),
-        ];
-        assert_eq!(parse_i16(&mut tokens.into_iter().peekable()), 0);
+        let mut tokens = vec![
+            Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero, Zero,
+            StructEnd,
+        ]
+        .into_iter()
+        .map(|token_value| Token::default(token_value))
+        .collect::<Vec<Token>>()
+        .into_iter()
+        .enumerate()
+        .peekable();
+
+        assert_eq!(parse_i16(&mut tokens), 0);
     }
 
     #[test]
     fn positive_0_full() {
-        let tokens = vec![
-            PositiveValue(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            StructEnd(0, 0),
-        ];
-        assert_eq!(parse_i16(&mut tokens.into_iter().peekable()), 0);
+        let mut tokens = vec![
+            PositiveValue,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            StructEnd,
+        ]
+        .into_iter()
+        .map(|token_value| Token::default(token_value))
+        .collect::<Vec<Token>>()
+        .into_iter()
+        .enumerate()
+        .peekable();
+        assert_eq!(parse_i16(&mut tokens), 0);
     }
 
     #[test]
     fn negative_0_full() {
-        let tokens = vec![
-            NegativeValue(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            Zero(0, 0),
-            StructEnd(0, 0),
-        ];
-        assert_eq!(parse_i16(&mut tokens.into_iter().peekable()), 0);
+        let mut tokens = vec![
+            NegativeValue,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            Zero,
+            StructEnd,
+        ]
+        .into_iter()
+        .map(|token_value| Token::default(token_value))
+        .collect::<Vec<Token>>()
+        .into_iter()
+        .enumerate()
+        .peekable();
+        assert_eq!(parse_i16(&mut tokens), 0);
     }
 
     #[test]
     fn unsigned_max() {
-        let tokens = vec![
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            StructEnd(0, 0),
-        ];
-        assert_eq!(
-            parse_i16(&mut tokens.into_iter().peekable()),
-            0b111111111111111
-        );
+        let mut tokens = vec![
+            One, One, One, One, One, One, One, One, One, One, One, One, One, One, One, StructEnd,
+        ]
+        .into_iter()
+        .map(|token_value| Token::default(token_value))
+        .collect::<Vec<Token>>()
+        .into_iter()
+        .enumerate()
+        .peekable();
+        assert_eq!(parse_i16(&mut tokens), 0b111111111111111);
     }
 
     #[test]
     fn positive_max() {
-        let tokens = vec![
-            PositiveValue(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            StructEnd(0, 0),
-        ];
-        assert_eq!(
-            parse_i16(&mut tokens.into_iter().peekable()),
-            0b111111111111111
-        );
+        let mut tokens = vec![
+            PositiveValue,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            StructEnd,
+        ]
+        .into_iter()
+        .map(|token_value| Token::default(token_value))
+        .collect::<Vec<Token>>()
+        .into_iter()
+        .enumerate()
+        .peekable();
+        assert_eq!(parse_i16(&mut tokens), 0b111111111111111);
     }
 
     #[test]
     fn negative_max() {
-        let tokens = vec![
-            NegativeValue(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            StructEnd(0, 0),
-        ];
-        assert_eq!(
-            parse_i16(&mut tokens.into_iter().peekable()),
-            -0b111111111111111
-        );
+        let mut tokens = vec![
+            NegativeValue,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            StructEnd,
+        ]
+        .into_iter()
+        .map(|token_value| Token::default(token_value))
+        .collect::<Vec<Token>>()
+        .into_iter()
+        .enumerate()
+        .peekable();
+        assert_eq!(parse_i16(&mut tokens), -0b111111111111111);
     }
 
     #[test]
     fn random_partial() {
-        let tokens = vec![
-            NegativeValue(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            One(0, 0),
-            StructEnd(0, 0),
-        ];
-        assert_eq!(parse_i16(&mut tokens.into_iter().peekable()), -0b11111111);
+        let mut tokens = vec![
+            NegativeValue,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            One,
+            StructEnd,
+        ]
+        .into_iter()
+        .map(|token_value| Token::default(token_value))
+        .collect::<Vec<Token>>()
+        .into_iter()
+        .enumerate()
+        .peekable();
+        assert_eq!(parse_i16(&mut tokens), -0b11111111);
     }
 
     #[test]
     fn random_partial_1() {
-        let tokens = vec![
-            PositiveValue(0, 0),
-            Zero(0, 0),
-            One(0, 0),
-            One(0, 0),
-            Zero(0, 0),
-            One(0, 0),
-            Zero(0, 0),
-            StructEnd(0, 0),
-        ];
-        assert_eq!(parse_i16(&mut tokens.into_iter().peekable()), 0b011010);
+        let mut tokens = vec![PositiveValue, Zero, One, One, Zero, One, Zero, StructEnd]
+            .into_iter()
+            .map(|token_value| Token::default(token_value))
+            .collect::<Vec<Token>>()
+            .into_iter()
+            .enumerate()
+            .peekable();
+        assert_eq!(parse_i16(&mut tokens), 0b011010);
     }
 }

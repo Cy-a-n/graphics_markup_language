@@ -1,31 +1,85 @@
-#[derive(Debug, PartialEq)]
-pub enum Token {
-    PrimitiveValue(usize, usize),
-    NegativeValue(usize, usize),
-    PositiveValue(usize, usize),
-    Zero(usize, usize),
-    One(usize, usize),
-    StructStart(usize, usize),
-    StructEnd(usize, usize),
-    ArrayStart(usize, usize),
-    ArrayEnd(usize, usize),
-    AttributRed(usize, usize),
-    AttributGreen(usize, usize),
-    AttributBlue(usize, usize),
-    AttributX(usize, usize),
-    AttributY(usize, usize),
-    AttributPosition(usize, usize),
-    AttributRotation(usize, usize),
-    AttributWidth(usize, usize),
-    AttributBorderColor(usize, usize),
-    AttributFillColor(usize, usize),
-    AttributVertices(usize, usize),
-    AttributVisibleExtent(usize, usize),
-    AttributBackgroundColor(usize, usize),
-    AttributShapes(usize, usize),
+pub struct Token {
+    value: TokenValue,
+    line: usize,
+    offset_start_inclusive: usize,
+    offset_end_exclusive: usize,
 }
 
 impl Token {
+    #[allow(unused)]
+    pub fn default(value: TokenValue) -> Self {
+        Token {
+            line: 0,
+            offset_start_inclusive: 0,
+            offset_end_exclusive: 0,
+            value,
+        }
+    }
+    pub fn new(line: usize, offset_start_inclusive: usize, value: TokenValue) -> Self {
+        Token {
+            line,
+            offset_start_inclusive,
+            offset_end_exclusive: offset_start_inclusive + TokenValue::length(&value),
+            value,
+        }
+    }
+
+    pub fn value(&self) -> &TokenValue {
+        &self.value
+    }
+
+    pub fn _line(&self) -> &usize {
+        &self.line
+    }
+
+    pub fn _offset_start_inclusive(&self) -> &usize {
+        &self.offset_start_inclusive
+    }
+
+    pub fn _offset_end_exclusive(&self) -> &usize {
+        &self.offset_end_exclusive
+    }
+}
+
+impl std::fmt::Debug for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Token")
+            .field("value", &self.value)
+            .field("line", &self.line)
+            .field("offset_start_inclusive", &self.offset_start_inclusive)
+            .field("offset_end_exclusive", &self.offset_end_exclusive)
+            .finish()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum TokenValue {
+    PrimitiveValue,
+    NegativeValue,
+    PositiveValue,
+    Zero,
+    One,
+    StructStart,
+    StructEnd,
+    ArrayStart,
+    ArrayEnd,
+    AttributRed,
+    AttributGreen,
+    AttributBlue,
+    AttributX,
+    AttributY,
+    AttributPosition,
+    AttributRotation,
+    AttributWidth,
+    AttributBorderColor,
+    AttributFillColor,
+    AttributVertices,
+    AttributVisibleExtent,
+    AttributBackgroundColor,
+    AttributShapes,
+}
+
+impl TokenValue {
     const LENGTH_PRIMITIVE_VALUE: usize = 1;
     const LENGTH_NEGATIVE_VALUE: usize = 1;
     const LENGTH_POSITIVE_VALUE: usize = 1;
@@ -77,58 +131,58 @@ impl Token {
     #[allow(unused)]
     pub fn length(&self) -> usize {
         match self {
-            Token::PrimitiveValue(_, _) => Self::LENGTH_PRIMITIVE_VALUE,
-            Token::NegativeValue(_, _) => Self::LENGTH_NEGATIVE_VALUE,
-            Token::PositiveValue(_, _) => Self::LENGTH_POSITIVE_VALUE,
-            Token::Zero(_, _) => Self::LENGTH_ZERO,
-            Token::One(_, _) => Self::LENGTH_ONE,
-            Token::StructStart(_, _) => Self::LENGTH_STRUCT_START,
-            Token::StructEnd(_, _) => Self::LENGTH_STRUCT_END,
-            Token::ArrayStart(_, _) => Self::LENGTH_ARRAY_START,
-            Token::ArrayEnd(_, _) => Self::LENGTH_ARRAY_END,
-            Token::AttributRed(_, _) => Self::LENGTH_ATTRIBUT_RED,
-            Token::AttributGreen(_, _) => Self::LENGTH_ATTRIBUT_GREEN,
-            Token::AttributBlue(_, _) => Self::LENGTH_ATTRIBUT_BLUE,
-            Token::AttributX(_, _) => Self::LENGTH_ATTRIBUTE_X,
-            Token::AttributY(_, _) => Self::LENGTH_ATTRIBUTE_Y,
-            Token::AttributPosition(_, _) => Self::LENGTH_ATTRIBUTE_POSITION,
-            Token::AttributRotation(_, _) => Self::LENGTH_ATTRIBUTE_ROTATION,
-            Token::AttributWidth(_, _) => Self::LENGTH_ATTRIBUTE_WIDTH,
-            Token::AttributBorderColor(_, _) => Self::LENGTH_ATTRIBUTE_BORDER_COLOR,
-            Token::AttributFillColor(_, _) => Self::LENGTH_ATTRIBUTE_FILL_COLOR,
-            Token::AttributVertices(_, _) => Self::LENGTH_ATTRIBUTE_VERTICES,
-            Token::AttributVisibleExtent(_, _) => Self::LENGTH_ATTRIBUTE_VISIBLE_EXTENT,
-            Token::AttributBackgroundColor(_, _) => Self::LENGTH_ATTRIBUTE_BACKGROUND_COLOR,
-            Token::AttributShapes(_, _) => Self::LENGTH_ATTRIBUTE_SHAPES,
+            TokenValue::PrimitiveValue => Self::LENGTH_PRIMITIVE_VALUE,
+            TokenValue::NegativeValue => Self::LENGTH_NEGATIVE_VALUE,
+            TokenValue::PositiveValue => Self::LENGTH_POSITIVE_VALUE,
+            TokenValue::Zero => Self::LENGTH_ZERO,
+            TokenValue::One => Self::LENGTH_ONE,
+            TokenValue::StructStart => Self::LENGTH_STRUCT_START,
+            TokenValue::StructEnd => Self::LENGTH_STRUCT_END,
+            TokenValue::ArrayStart => Self::LENGTH_ARRAY_START,
+            TokenValue::ArrayEnd => Self::LENGTH_ARRAY_END,
+            TokenValue::AttributRed => Self::LENGTH_ATTRIBUT_RED,
+            TokenValue::AttributGreen => Self::LENGTH_ATTRIBUT_GREEN,
+            TokenValue::AttributBlue => Self::LENGTH_ATTRIBUT_BLUE,
+            TokenValue::AttributX => Self::LENGTH_ATTRIBUTE_X,
+            TokenValue::AttributY => Self::LENGTH_ATTRIBUTE_Y,
+            TokenValue::AttributPosition => Self::LENGTH_ATTRIBUTE_POSITION,
+            TokenValue::AttributRotation => Self::LENGTH_ATTRIBUTE_ROTATION,
+            TokenValue::AttributWidth => Self::LENGTH_ATTRIBUTE_WIDTH,
+            TokenValue::AttributBorderColor => Self::LENGTH_ATTRIBUTE_BORDER_COLOR,
+            TokenValue::AttributFillColor => Self::LENGTH_ATTRIBUTE_FILL_COLOR,
+            TokenValue::AttributVertices => Self::LENGTH_ATTRIBUTE_VERTICES,
+            TokenValue::AttributVisibleExtent => Self::LENGTH_ATTRIBUTE_VISIBLE_EXTENT,
+            TokenValue::AttributBackgroundColor => Self::LENGTH_ATTRIBUTE_BACKGROUND_COLOR,
+            TokenValue::AttributShapes => Self::LENGTH_ATTRIBUTE_SHAPES,
         }
     }
 
     #[allow(unused)]
     pub fn to_str(&self) -> &str {
         match self {
-            Token::PrimitiveValue(_, _) => Self::STR_PRIMITIVE_VALUE,
-            Token::NegativeValue(_, _) => Self::STR_NEGATIVE_VALUE,
-            Token::PositiveValue(_, _) => Self::STR_POSITIVE_VALUE,
-            Token::Zero(_, _) => Self::STR_ZERO,
-            Token::One(_, _) => Self::STR_ONE,
-            Token::StructStart(_, _) => Self::STR_STRUCT_START,
-            Token::StructEnd(_, _) => Self::STR_STRUCT_END,
-            Token::ArrayStart(_, _) => Self::STR_ARRAY_START,
-            Token::ArrayEnd(_, _) => Self::STR_ARRAY_END,
-            Token::AttributRed(_, _) => Self::STR_ATTRIBUT_RED,
-            Token::AttributGreen(_, _) => Self::STR_ATTRIBUT_GREEN,
-            Token::AttributBlue(_, _) => Self::STR_ATTRIBUT_BLUE,
-            Token::AttributX(_, _) => Self::STR_ATTRIBUTE_X,
-            Token::AttributY(_, _) => Self::STR_ATTRIBUTE_Y,
-            Token::AttributPosition(_, _) => Self::STR_ATTRIBUTE_POSITION,
-            Token::AttributRotation(_, _) => Self::STR_ATTRIBUTE_ROTATION,
-            Token::AttributWidth(_, _) => Self::STR_ATTRIBUTE_WIDTH,
-            Token::AttributBorderColor(_, _) => Self::STR_ATTRIBUTE_BORDER_COLOR,
-            Token::AttributFillColor(_, _) => Self::STR_ATTRIBUTE_FILL_COLOR,
-            Token::AttributVertices(_, _) => Self::STR_ATTRIBUTE_VERTICES,
-            Token::AttributVisibleExtent(_, _) => Self::STR_ATTRIBUTE_VISIBLE_EXTENT,
-            Token::AttributBackgroundColor(_, _) => Self::STR_ATTRIBUTE_BACKGROUND_COLOR,
-            Token::AttributShapes(_, _) => Self::STR_ATTRIBUTE_SHAPES,
+            TokenValue::PrimitiveValue => Self::STR_PRIMITIVE_VALUE,
+            TokenValue::NegativeValue => Self::STR_NEGATIVE_VALUE,
+            TokenValue::PositiveValue => Self::STR_POSITIVE_VALUE,
+            TokenValue::Zero => Self::STR_ZERO,
+            TokenValue::One => Self::STR_ONE,
+            TokenValue::StructStart => Self::STR_STRUCT_START,
+            TokenValue::StructEnd => Self::STR_STRUCT_END,
+            TokenValue::ArrayStart => Self::STR_ARRAY_START,
+            TokenValue::ArrayEnd => Self::STR_ARRAY_END,
+            TokenValue::AttributRed => Self::STR_ATTRIBUT_RED,
+            TokenValue::AttributGreen => Self::STR_ATTRIBUT_GREEN,
+            TokenValue::AttributBlue => Self::STR_ATTRIBUT_BLUE,
+            TokenValue::AttributX => Self::STR_ATTRIBUTE_X,
+            TokenValue::AttributY => Self::STR_ATTRIBUTE_Y,
+            TokenValue::AttributPosition => Self::STR_ATTRIBUTE_POSITION,
+            TokenValue::AttributRotation => Self::STR_ATTRIBUTE_ROTATION,
+            TokenValue::AttributWidth => Self::STR_ATTRIBUTE_WIDTH,
+            TokenValue::AttributBorderColor => Self::STR_ATTRIBUTE_BORDER_COLOR,
+            TokenValue::AttributFillColor => Self::STR_ATTRIBUTE_FILL_COLOR,
+            TokenValue::AttributVertices => Self::STR_ATTRIBUTE_VERTICES,
+            TokenValue::AttributVisibleExtent => Self::STR_ATTRIBUTE_VISIBLE_EXTENT,
+            TokenValue::AttributBackgroundColor => Self::STR_ATTRIBUTE_BACKGROUND_COLOR,
+            TokenValue::AttributShapes => Self::STR_ATTRIBUTE_SHAPES,
         }
     }
 }
