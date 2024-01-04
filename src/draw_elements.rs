@@ -6,6 +6,7 @@ pub struct Color {
 }
 
 impl Color {
+    #[allow(unused)]
     pub fn default() -> Self {
         Self {
             red: 0,
@@ -22,6 +23,7 @@ pub struct Point {
 }
 
 impl Point {
+    #[allow(unused)]
     pub fn default() -> Self {
         Self { x: 0, y: 0 }
     }
@@ -38,6 +40,7 @@ pub struct Polygon {
 }
 
 impl Polygon {
+    #[allow(unused)]
     pub fn default() -> Self {
         Polygon {
             position: Point::default(),
@@ -59,7 +62,9 @@ pub struct Group {
 
 #[derive(Debug, PartialEq)]
 pub enum Shape {
+    #[allow(unused)]
     Polygon(Polygon),
+    #[allow(unused)]
     Group(Group),
 }
 
@@ -70,6 +75,7 @@ pub struct AmbiguousElement {
 }
 
 impl AmbiguousElement {
+    #[allow(unused)]
     pub fn default() -> Self {
         AmbiguousElement {
             position: Point::default(),
@@ -77,6 +83,7 @@ impl AmbiguousElement {
         }
     }
 
+    #[allow(unused)]
     pub fn into_polygon(self) -> Polygon {
         Polygon {
             position: self.position,
@@ -88,6 +95,7 @@ impl AmbiguousElement {
         }
     }
 
+    #[allow(unused)]
     pub fn into_group(self) -> Group {
         Group {
             position: self.position,
@@ -105,6 +113,7 @@ pub struct Main {
 }
 
 impl Main {
+    #[allow(unused)]
     pub fn default() -> Self {
         Self {
             visible_extent: Point {

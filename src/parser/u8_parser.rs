@@ -5,8 +5,7 @@ use self::States::*;
 use crate::token::TokenValue::*;
 use crate::token::*;
 
-use super::parser_panic;
-
+#[allow(unused)]
 pub(super) fn parse_u8(tokens: &mut Peekable<Enumerate<IntoIter<Token>>>) -> u8 {
     let mut state = Start;
 
@@ -32,6 +31,7 @@ enum States {
 }
 
 impl States {
+    #[allow(unused)]
     fn next_state(self, tokens: &mut Peekable<Enumerate<IntoIter<Token>>>) -> Self {
         let (index, token) = tokens.peek().expect("The source code ended prematurely");
         let token_value = token.value();
@@ -46,7 +46,7 @@ impl States {
                     tokens.next();
                     Digit0(1)
                 }
-                _ => parser_panic(token, index),
+                _ => todo!(),
             },
             Digit0(number) => match token_value {
                 Zero => {

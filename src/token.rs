@@ -1,3 +1,4 @@
+#[derive(PartialEq)]
 pub struct Token {
     value: TokenValue,
     line: usize,
@@ -28,15 +29,16 @@ impl Token {
         &self.value
     }
 
-    pub fn _line(&self) -> &usize {
+    pub fn line(&self) -> &usize {
         &self.line
     }
 
-    pub fn _offset_start_inclusive(&self) -> &usize {
+    pub fn offset_start_inclusive(&self) -> &usize {
         &self.offset_start_inclusive
     }
 
-    pub fn _offset_end_exclusive(&self) -> &usize {
+    #[allow(unused)]
+    pub fn offset_end_exclusive(&self) -> &usize {
         &self.offset_end_exclusive
     }
 }

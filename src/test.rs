@@ -13,7 +13,7 @@ use i16_parser::parse_i16;
 use u8_parser::parse_u8;
 
 pub fn to_main_draw_element(tokens: Vec<Token>) -> Main {
-    let mut tokens = tokens.into_iter().enumerate().peekable();
+    let mut tokens = tokens.iter_mut().enumerate().peekable();
     let mut state = Start;
 
     loop {
