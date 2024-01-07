@@ -1,6 +1,8 @@
-#[derive(PartialEq)]
+use std::fmt::{Formatter, Result};
+
+#[derive(PartialEq, Clone)]
 pub struct Token {
-    value: TokenValue,
+    value: Value,
     line: usize,
     offset_start_inclusive: usize,
     offset_end_exclusive: usize,
@@ -8,7 +10,7 @@ pub struct Token {
 
 impl Token {
     #[allow(unused)]
-    pub fn default(value: TokenValue) -> Self {
+    pub fn default(value: Value) -> Self {
         Token {
             line: 0,
             offset_start_inclusive: 0,
@@ -16,16 +18,17 @@ impl Token {
             value,
         }
     }
-    pub fn new(line: usize, offset_start_inclusive: usize, value: TokenValue) -> Self {
+    #[allow(unused)]
+    pub fn new(line: usize, offset_start_inclusive: usize, value: Value) -> Self {
         Token {
             line,
             offset_start_inclusive,
-            offset_end_exclusive: offset_start_inclusive + TokenValue::length(&value),
+            offset_end_exclusive: offset_start_inclusive + Value::len(&value),
             value,
         }
     }
 
-    pub fn value(&self) -> &TokenValue {
+    pub fn value(&self) -> &Value {
         &self.value
     }
 
@@ -44,7 +47,7 @@ impl Token {
 }
 
 impl std::fmt::Debug for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         f.debug_struct("Token")
             .field("value", &self.value)
             .field("line", &self.line)
@@ -54,11 +57,12 @@ impl std::fmt::Debug for Token {
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub enum TokenValue {
-    PrimitiveValue,
-    NegativeValue,
-    PositiveValue,
+#[derive(Debug, PartialEq, Clone)]
+#[allow(unused)]
+pub enum Value {
+    Primitive,
+    NegativeSign,
+    PositiveSign,
     Zero,
     One,
     StructStart,
@@ -81,7 +85,7 @@ pub enum TokenValue {
     AttributShapes,
 }
 
-impl TokenValue {
+impl Value {
     const LENGTH_PRIMITIVE_VALUE: usize = 1;
     const LENGTH_NEGATIVE_VALUE: usize = 1;
     const LENGTH_POSITIVE_VALUE: usize = 1;
@@ -131,60 +135,66 @@ impl TokenValue {
     const STR_ATTRIBUTE_SHAPES: &str = "shapes";
 
     #[allow(unused)]
-    pub fn length(&self) -> usize {
+    pub fn len(&self) -> usize {
         match self {
-            TokenValue::PrimitiveValue => Self::LENGTH_PRIMITIVE_VALUE,
-            TokenValue::NegativeValue => Self::LENGTH_NEGATIVE_VALUE,
-            TokenValue::PositiveValue => Self::LENGTH_POSITIVE_VALUE,
-            TokenValue::Zero => Self::LENGTH_ZERO,
-            TokenValue::One => Self::LENGTH_ONE,
-            TokenValue::StructStart => Self::LENGTH_STRUCT_START,
-            TokenValue::StructEnd => Self::LENGTH_STRUCT_END,
-            TokenValue::ArrayStart => Self::LENGTH_ARRAY_START,
-            TokenValue::ArrayEnd => Self::LENGTH_ARRAY_END,
-            TokenValue::AttributRed => Self::LENGTH_ATTRIBUT_RED,
-            TokenValue::AttributGreen => Self::LENGTH_ATTRIBUT_GREEN,
-            TokenValue::AttributBlue => Self::LENGTH_ATTRIBUT_BLUE,
-            TokenValue::AttributX => Self::LENGTH_ATTRIBUTE_X,
-            TokenValue::AttributY => Self::LENGTH_ATTRIBUTE_Y,
-            TokenValue::AttributPosition => Self::LENGTH_ATTRIBUTE_POSITION,
-            TokenValue::AttributRotation => Self::LENGTH_ATTRIBUTE_ROTATION,
-            TokenValue::AttributWidth => Self::LENGTH_ATTRIBUTE_WIDTH,
-            TokenValue::AttributBorderColor => Self::LENGTH_ATTRIBUTE_BORDER_COLOR,
-            TokenValue::AttributFillColor => Self::LENGTH_ATTRIBUTE_FILL_COLOR,
-            TokenValue::AttributVertices => Self::LENGTH_ATTRIBUTE_VERTICES,
-            TokenValue::AttributVisibleExtent => Self::LENGTH_ATTRIBUTE_VISIBLE_EXTENT,
-            TokenValue::AttributBackgroundColor => Self::LENGTH_ATTRIBUTE_BACKGROUND_COLOR,
-            TokenValue::AttributShapes => Self::LENGTH_ATTRIBUTE_SHAPES,
+            Value::Primitive => Self::LENGTH_PRIMITIVE_VALUE,
+            Value::NegativeSign => Self::LENGTH_NEGATIVE_VALUE,
+            Value::PositiveSign => Self::LENGTH_POSITIVE_VALUE,
+            Value::Zero => Self::LENGTH_ZERO,
+            Value::One => Self::LENGTH_ONE,
+            Value::StructStart => Self::LENGTH_STRUCT_START,
+            Value::StructEnd => Self::LENGTH_STRUCT_END,
+            Value::ArrayStart => Self::LENGTH_ARRAY_START,
+            Value::ArrayEnd => Self::LENGTH_ARRAY_END,
+            Value::AttributRed => Self::LENGTH_ATTRIBUT_RED,
+            Value::AttributGreen => Self::LENGTH_ATTRIBUT_GREEN,
+            Value::AttributBlue => Self::LENGTH_ATTRIBUT_BLUE,
+            Value::AttributX => Self::LENGTH_ATTRIBUTE_X,
+            Value::AttributY => Self::LENGTH_ATTRIBUTE_Y,
+            Value::AttributPosition => Self::LENGTH_ATTRIBUTE_POSITION,
+            Value::AttributRotation => Self::LENGTH_ATTRIBUTE_ROTATION,
+            Value::AttributWidth => Self::LENGTH_ATTRIBUTE_WIDTH,
+            Value::AttributBorderColor => Self::LENGTH_ATTRIBUTE_BORDER_COLOR,
+            Value::AttributFillColor => Self::LENGTH_ATTRIBUTE_FILL_COLOR,
+            Value::AttributVertices => Self::LENGTH_ATTRIBUTE_VERTICES,
+            Value::AttributVisibleExtent => Self::LENGTH_ATTRIBUTE_VISIBLE_EXTENT,
+            Value::AttributBackgroundColor => Self::LENGTH_ATTRIBUTE_BACKGROUND_COLOR,
+            Value::AttributShapes => Self::LENGTH_ATTRIBUTE_SHAPES,
         }
     }
 
     #[allow(unused)]
     pub fn to_str(&self) -> &str {
         match self {
-            TokenValue::PrimitiveValue => Self::STR_PRIMITIVE_VALUE,
-            TokenValue::NegativeValue => Self::STR_NEGATIVE_VALUE,
-            TokenValue::PositiveValue => Self::STR_POSITIVE_VALUE,
-            TokenValue::Zero => Self::STR_ZERO,
-            TokenValue::One => Self::STR_ONE,
-            TokenValue::StructStart => Self::STR_STRUCT_START,
-            TokenValue::StructEnd => Self::STR_STRUCT_END,
-            TokenValue::ArrayStart => Self::STR_ARRAY_START,
-            TokenValue::ArrayEnd => Self::STR_ARRAY_END,
-            TokenValue::AttributRed => Self::STR_ATTRIBUT_RED,
-            TokenValue::AttributGreen => Self::STR_ATTRIBUT_GREEN,
-            TokenValue::AttributBlue => Self::STR_ATTRIBUT_BLUE,
-            TokenValue::AttributX => Self::STR_ATTRIBUTE_X,
-            TokenValue::AttributY => Self::STR_ATTRIBUTE_Y,
-            TokenValue::AttributPosition => Self::STR_ATTRIBUTE_POSITION,
-            TokenValue::AttributRotation => Self::STR_ATTRIBUTE_ROTATION,
-            TokenValue::AttributWidth => Self::STR_ATTRIBUTE_WIDTH,
-            TokenValue::AttributBorderColor => Self::STR_ATTRIBUTE_BORDER_COLOR,
-            TokenValue::AttributFillColor => Self::STR_ATTRIBUTE_FILL_COLOR,
-            TokenValue::AttributVertices => Self::STR_ATTRIBUTE_VERTICES,
-            TokenValue::AttributVisibleExtent => Self::STR_ATTRIBUTE_VISIBLE_EXTENT,
-            TokenValue::AttributBackgroundColor => Self::STR_ATTRIBUTE_BACKGROUND_COLOR,
-            TokenValue::AttributShapes => Self::STR_ATTRIBUTE_SHAPES,
+            Value::Primitive => Self::STR_PRIMITIVE_VALUE,
+            Value::NegativeSign => Self::STR_NEGATIVE_VALUE,
+            Value::PositiveSign => Self::STR_POSITIVE_VALUE,
+            Value::Zero => Self::STR_ZERO,
+            Value::One => Self::STR_ONE,
+            Value::StructStart => Self::STR_STRUCT_START,
+            Value::StructEnd => Self::STR_STRUCT_END,
+            Value::ArrayStart => Self::STR_ARRAY_START,
+            Value::ArrayEnd => Self::STR_ARRAY_END,
+            Value::AttributRed => Self::STR_ATTRIBUT_RED,
+            Value::AttributGreen => Self::STR_ATTRIBUT_GREEN,
+            Value::AttributBlue => Self::STR_ATTRIBUT_BLUE,
+            Value::AttributX => Self::STR_ATTRIBUTE_X,
+            Value::AttributY => Self::STR_ATTRIBUTE_Y,
+            Value::AttributPosition => Self::STR_ATTRIBUTE_POSITION,
+            Value::AttributRotation => Self::STR_ATTRIBUTE_ROTATION,
+            Value::AttributWidth => Self::STR_ATTRIBUTE_WIDTH,
+            Value::AttributBorderColor => Self::STR_ATTRIBUTE_BORDER_COLOR,
+            Value::AttributFillColor => Self::STR_ATTRIBUTE_FILL_COLOR,
+            Value::AttributVertices => Self::STR_ATTRIBUTE_VERTICES,
+            Value::AttributVisibleExtent => Self::STR_ATTRIBUTE_VISIBLE_EXTENT,
+            Value::AttributBackgroundColor => Self::STR_ATTRIBUTE_BACKGROUND_COLOR,
+            Value::AttributShapes => Self::STR_ATTRIBUTE_SHAPES,
         }
+    }
+}
+
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", self.to_str())
     }
 }
