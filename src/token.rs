@@ -60,7 +60,7 @@ impl std::fmt::Debug for Token {
 #[derive(Debug, PartialEq, Clone)]
 #[allow(unused)]
 pub enum Value {
-    Primitive,
+    EqualsChar,
     NegativeSign,
     PositiveSign,
     Zero,
@@ -137,7 +137,7 @@ impl Value {
     #[allow(unused)]
     pub fn len(&self) -> usize {
         match self {
-            Value::Primitive => Self::LENGTH_PRIMITIVE_VALUE,
+            Value::EqualsChar => Self::LENGTH_PRIMITIVE_VALUE,
             Value::NegativeSign => Self::LENGTH_NEGATIVE_VALUE,
             Value::PositiveSign => Self::LENGTH_POSITIVE_VALUE,
             Value::Zero => Self::LENGTH_ZERO,
@@ -166,7 +166,7 @@ impl Value {
     #[allow(unused)]
     pub fn to_str(&self) -> &str {
         match self {
-            Value::Primitive => Self::STR_PRIMITIVE_VALUE,
+            Value::EqualsChar => Self::STR_PRIMITIVE_VALUE,
             Value::NegativeSign => Self::STR_NEGATIVE_VALUE,
             Value::PositiveSign => Self::STR_POSITIVE_VALUE,
             Value::Zero => Self::STR_ZERO,

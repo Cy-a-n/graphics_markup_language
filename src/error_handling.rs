@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use strum_macros::Display;
 
 use self::Error::Parser;
@@ -7,31 +9,59 @@ use crate::token::Value;
 use colored::Colorize;
 
 #[derive(Display)]
-pub enum Error {
-    #[allow(unused)]
+#[allow(unused)]
+pub enum Error<'a> {
     Parser(ParserError),
+    LexerInvalidChar {
+        error_char: char,
+        expected_chars: Vec<char>,
+        error_line_content: &'a str,
+        error_line_number: usize,
+        error_offset: usize,
+    },
 }
 
-impl Error {
+impl Error<'_> {
     #[allow(unused)]
     pub fn raise(self) {
-        eprintln!(
+        eprintln!("{}", self.error_message());
+    }
+
+    pub fn error_message(&self) -> String {
+        format!(
             "{} `{}`: {}",
             "ERROR:".red(),
             self.error_type(),
             self.reason()
-        );
+        )
     }
 
     fn error_type(&self) -> String {
         match self {
             Parser(error) => format!("{self}.{}", error.error_type()),
+            Error::LexerInvalidChar {
+                error_char: _,
+                expected_chars: _,
+                error_line_content: _,
+                error_line_number: _,
+                error_offset: _,
+            } => format!("{self}"),
         }
     }
 
     fn reason(&self) -> String {
         match self {
             Parser(error) => error.reason(),
+            Error::LexerInvalidChar {
+                error_char,
+                expected_chars,
+                error_line_number,
+                error_line_content,
+                error_offset,
+            } => {
+                let error_line_number = line_number_with_padding(*error_line_number);
+                format!("The lexer encountered the unexpected character '{error_char}'. Expected the chars {}.\n\n{error_line_number}{error_line_content}\n{error_line_number}{}", format_slice(expected_chars), error_in_source_code("Did not expect this token.", *error_offset, 1))
+            }
         }
     }
 }
@@ -65,7 +95,7 @@ impl ParserError {
                 expected_tokens,
             } => format!(
                 "The source code ended while parsing a value of type `{parsed_type}`. Expected the tokens {}\n\n{}.",
-                expected_tokens_to_string(expected_tokens)
+                format_slice(expected_tokens)
                 , source_code_with_error(current_value_slice, current_value_slice.last().unwrap_or_else(|| panic!("BUG: Expected the passed current_value_slice vec to have at least one token. `{self}`, {self:?}")),"Source code ends here.")
             ),
         }
@@ -73,34 +103,46 @@ impl ParserError {
 }
 
 #[derive(Display, Debug)]
+#[allow(unused)]
 pub enum ParsedType {
-    #[allow(unused, non_camel_case_types)]
-    i16,
-    #[allow(unused, non_camel_case_types)]
-    u8,
-    #[allow(unused)]
+    #[strum(serialize = "u8")]
+    U8,
+    #[strum(serialize = "i16")]
+    I16,
     Color,
-    #[allow(unused)]
     Point,
-    #[allow(unused)]
     Polygon,
-    #[allow(unused)]
     Group,
-    #[allow(unused)]
     Main,
 }
 
-fn expected_tokens_to_string(expected_tokens: &[Value]) -> String {
-    let mut output = String::new();
-    let mut expected_tokens = expected_tokens.iter();
+fn error_in_source_code(error_message: &str, offset: usize, error_len: usize) -> String {
+    format!(
+        "{}{} {error_message}",
+        " ".repeat(offset),
+        "^".repeat(error_len)
+    )
+    .red()
+    .to_string()
+}
 
-    match expected_tokens.next() {
-        Some(token) => output += &format!("`{}`", token.to_str()),
+fn line_number_with_padding(line_number: usize) -> String {
+    let line_number = line_number.to_string();
+    let padding = " ".repeat(6_usize.saturating_sub(line_number.len()) + 2);
+    format!("{}{padding}", line_number.yellow())
+}
+
+fn format_slice<T: Display>(slice: &[T]) -> String {
+    let mut output = String::new();
+    let mut slice = slice.iter();
+
+    match slice.next() {
+        Some(value) => output += &format!("`{value}`"),
         None => return output,
     };
 
-    for token in expected_tokens {
-        output.push_str(&format!(", `{token}`"));
+    for value in slice {
+        output.push_str(&format!(", `{value}`"));
     }
 
     output
@@ -135,9 +177,7 @@ fn source_code_with_error(tokens: &Vec<Token>, error_token: &Token, error_messag
         // Push the line number at the start of each string of the output source code
         let mut output: Vec<String> = vec![String::new(); tokens_in_lines.len()];
         for (index, source_code) in output.iter_mut().enumerate() {
-            let line_number = (index + line_offset).to_string();
-            let padding = " ".repeat(6_usize.saturating_sub(line_number.len()) + 2);
-            *source_code = format!("{}{padding}", line_number.yellow());
+            *source_code = line_number_with_padding(index + line_offset);
         }
 
         // Parse the tokens to their original source code
@@ -158,13 +198,14 @@ fn source_code_with_error(tokens: &Vec<Token>, error_token: &Token, error_messag
         // Create the error message
         let error_message_index = error_token.line() - line_offset;
         let error_message = format!(
-            "{}{}{} {error_message}",
+            "{}{}",
             output[error_message_index],
-            " ".repeat(*error_token.offset_start_inclusive()),
-            "^".repeat(error_token.value().len())
-        )
-        .red()
-        .to_string();
+            error_in_source_code(
+                error_message,
+                *error_token.offset_start_inclusive(),
+                error_token.value().len(),
+            )
+        );
 
         for (output, source_code) in output.iter_mut().zip(source_code.iter()) {
             output.push_str(source_code);
@@ -190,7 +231,7 @@ mod tests {
             Token::new(4, 0, StructEnd),
         ];
         let error_token = tokens[0].clone();
-        let expected = "\u{1b}[33m0\u{1b}[0m       {\n\u{1b}[31m\u{1b}[33m0\u{1b}[0m\u{1b}[31m       ^ There is no error\u{1b}[0m\n\u{1b}[33m1\u{1b}[0m           visible_extent\n\u{1b}[33m2\u{1b}[0m           background_color\n\u{1b}[33m3\u{1b}[0m           shapes\n\u{1b}[33m4\u{1b}[0m       }";
+        let expected = "\u{1b}[33m0\u{1b}[0m       {\n\u{1b}[33m0\u{1b}[0m       \u{1b}[31m^ There is no error\u{1b}[0m\n\u{1b}[33m1\u{1b}[0m           visible_extent\n\u{1b}[33m2\u{1b}[0m           background_color\n\u{1b}[33m3\u{1b}[0m           shapes\n\u{1b}[33m4\u{1b}[0m       }";
         let actual = source_code_with_error(&tokens, &error_token, "There is no error");
 
         assert_eq!(actual, expected);
@@ -206,7 +247,7 @@ mod tests {
             Token::new(4, 20, StructEnd),
         ];
         let error_token = tokens[2].clone();
-        let expected = "\u{1b}[33m4\u{1b}[0m          { red green blue }\n\u{1b}[31m\u{1b}[33m4\u{1b}[0m\u{1b}[31m                ^^^^^ There is no error\u{1b}[0m";
+        let expected = "\u{1b}[33m4\u{1b}[0m          { red green blue }\n\u{1b}[33m4\u{1b}[0m       \u{1b}[31m         ^^^^^ There is no error\u{1b}[0m"        ;
         let actual = source_code_with_error(&tokens, &error_token, "There is no error");
 
         assert_eq!(actual, expected);
