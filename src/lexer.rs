@@ -9,7 +9,7 @@ macro_rules! lexer_branch {
     {
         match $input {
             $( $expected_input => $next_state, )*
-            _ => (Err($input, vec![$($expected_input),*]), None),
+            _ => (Err(vec![$($expected_input),*]), None),
         }
     }
 }
@@ -21,9 +21,9 @@ pub fn to_tokens(source_code: &str) -> Result<Vec<Token>, Error> {
         for (offset, char) in source_code.chars().enumerate() {
             let (next_state, value) = current_state.next_state(char);
 
-            if let Err(error_char, expected_chars) = next_state {
+            if let Err(expected_chars) = next_state {
                 return Result::Err(LexerInvalidChar {
-                    error_char,
+                    error_char: char,
                     expected_chars,
                     error_line_content: line_content,
                     error_line_number: line_number,
@@ -127,7 +127,7 @@ enum State {
     String_sha,
     String_shap,
     String_shape,
-    Err(char, Vec<char>),
+    Err(Vec<char>),
 }
 
 impl State {
@@ -353,7 +353,7 @@ impl State {
                 'e' => (String_shape, None),),
             String_shape => lexer_branch!(char,
                 's' => (Start, Some(AttributShapes)),),
-            Err(_, _) => {
+            Err(_) => {
                 panic!("BUG: The `next_state` method should never be called on the `Err` state.")
             }
         }

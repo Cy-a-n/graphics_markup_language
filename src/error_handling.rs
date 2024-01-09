@@ -3,15 +3,14 @@ use std::fmt::Display;
 use strum_macros::Display;
 
 use self::Error::Parser;
-use self::ParserError::TokensEndPrematurely;
+use self::ParserError::TokensUnexpectedEnd;
 use crate::token::Token;
 use crate::token::Value;
 use colored::Colorize;
 
-#[derive(Display)]
-#[allow(unused)]
+#[derive(Display, Debug)]
 pub enum Error<'a> {
-    Parser(ParserError),
+    Parser(ParserError<'a>),
     LexerInvalidChar {
         error_char: char,
         expected_chars: Vec<char>,
@@ -22,7 +21,6 @@ pub enum Error<'a> {
 }
 
 impl Error<'_> {
-    #[allow(unused)]
     pub fn raise(self) {
         eprintln!("{}", self.error_message());
     }
@@ -60,44 +58,53 @@ impl Error<'_> {
                 error_offset,
             } => {
                 let error_line_number = line_number_with_padding(*error_line_number);
-                format!("The lexer encountered the unexpected character '{error_char}'. Expected the chars {}.\n\n{error_line_number}{error_line_content}\n{error_line_number}{}", format_slice(expected_chars), error_in_source_code("Did not expect this token.", *error_offset, 1))
+                format!("The lexer encountered the unexpected character '{error_char}'. Expected chars are {}.\n\n{error_line_number}{error_line_content}\n{error_line_number}{}", format_slice(expected_chars), error_in_source_code("Did not expect this token.", *error_offset, 1))
             }
         }
     }
 }
 
 #[derive(Display, Debug)]
-pub enum ParserError {
-    #[allow(unused)]
-    TokensEndPrematurely {
+
+pub enum ParserError<'a> {
+    TokensUnexpectedEnd {
         parsed_type: ParsedType,
-        current_value_slice: Vec<Token>,
+        current_value_slice: &'a [Token],
+        expected_tokens: Vec<Value>,
+    },
+    UnexpectedToken {
+        parsed_type: ParsedType,
+        current_value_slice: &'a [Token],
         expected_tokens: Vec<Value>,
     },
 }
 
-impl ParserError {
+impl ParserError<'_> {
     fn error_type(&self) -> String {
-        match self {
-            TokensEndPrematurely {
-                parsed_type: _,
-                current_value_slice: _,
-                expected_tokens: _,
-            } => format!("{self}"),
-        }
+        format!("{self}")
     }
 
     fn reason(&self) -> String {
         match self {
-            TokensEndPrematurely {
+            TokensUnexpectedEnd {
                 parsed_type,
                 current_value_slice,
                 expected_tokens,
             } => format!(
-                "The source code ended while parsing a value of type `{parsed_type}`. Expected the tokens {}\n\n{}.",
+                "The source code ended while parsing a value of type `{parsed_type}`. Expected tokens are {}.\n\n{}.",
                 format_slice(expected_tokens)
                 , source_code_with_error(current_value_slice, current_value_slice.last().unwrap_or_else(|| panic!("BUG: Expected the passed current_value_slice vec to have at least one token. `{self}`, {self:?}")),"Source code ends here.")
             ),
+            ParserError::UnexpectedToken { parsed_type, current_value_slice, expected_tokens } =>
+            {
+                let error_token = current_value_slice.last().unwrap_or_else(|| panic!("BUG: Expected the passed current_value_slice vec to have at least one token. `{self}`, {self:?}")); 
+                format!(
+                    "Encountered an unexpected Token {} while parsing a value of type `{parsed_type}`. Expected tokens are {}.\n\n{}.",
+                    error_token.value(),
+                    format_slice(expected_tokens)
+                    , source_code_with_error(current_value_slice, error_token, "Wrong token here.")
+                )
+            },
         }
     }
 }
@@ -116,6 +123,22 @@ pub enum ParsedType {
     Main,
 }
 
+fn format_slice<T: Display>(slice: &[T]) -> String {
+    let mut output = String::new();
+    let mut slice = slice.iter();
+
+    match slice.next() {
+        Some(value) => output += &format!("'{value}'"),
+        None => return output,
+    };
+
+    for value in slice {
+        output.push_str(&format!(", '{value}'"));
+    }
+
+    output
+}
+
 fn error_in_source_code(error_message: &str, offset: usize, error_len: usize) -> String {
     format!(
         "{}{} {error_message}",
@@ -132,23 +155,7 @@ fn line_number_with_padding(line_number: usize) -> String {
     format!("{}{padding}", line_number.yellow())
 }
 
-fn format_slice<T: Display>(slice: &[T]) -> String {
-    let mut output = String::new();
-    let mut slice = slice.iter();
-
-    match slice.next() {
-        Some(value) => output += &format!("`{value}`"),
-        None => return output,
-    };
-
-    for value in slice {
-        output.push_str(&format!(", `{value}`"));
-    }
-
-    output
-}
-
-fn source_code_with_error(tokens: &Vec<Token>, error_token: &Token, error_message: &str) -> String {
+fn source_code_with_error(tokens: &[Token], error_token: &Token, error_message: &str) -> String {
     // Error handling
     {
         assert!(

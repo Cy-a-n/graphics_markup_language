@@ -1,10 +1,13 @@
 mod custom_error;
 mod draw_elements;
 mod error_handling;
-mod finite_automata;
 mod lexer;
+mod parser;
 mod token;
 
 fn main() {
-    let _tokens = lexer::to_tokens("=+->");
+    let tokens = lexer::to_tokens("=+->");
+    if let Err(error) = tokens {
+        error.raise();
+    }
 }

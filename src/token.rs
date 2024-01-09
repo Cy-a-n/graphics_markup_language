@@ -1,5 +1,7 @@
 use std::fmt::{Formatter, Result};
 
+use strum_macros::EnumString;
+
 #[derive(PartialEq, Clone)]
 pub struct Token {
     value: Value,
@@ -9,7 +11,7 @@ pub struct Token {
 }
 
 impl Token {
-    #[allow(unused)]
+    #[cfg(test)]
     pub fn default(value: Value) -> Self {
         Token {
             line: 0,
@@ -18,7 +20,7 @@ impl Token {
             value,
         }
     }
-    #[allow(unused)]
+
     pub fn new(line: usize, offset_start_inclusive: usize, value: Value) -> Self {
         Token {
             line,
@@ -57,8 +59,8 @@ impl std::fmt::Debug for Token {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
-#[allow(unused)]
+#[derive(Debug, PartialEq, Clone, EnumString)]
+
 pub enum Value {
     EqualsChar,
     NegativeSign,
@@ -134,7 +136,6 @@ impl Value {
     const STR_ATTRIBUTE_BACKGROUND_COLOR: &str = "background_color";
     const STR_ATTRIBUTE_SHAPES: &str = "shapes";
 
-    #[allow(unused)]
     pub fn len(&self) -> usize {
         match self {
             Value::EqualsChar => Self::LENGTH_PRIMITIVE_VALUE,
@@ -163,7 +164,6 @@ impl Value {
         }
     }
 
-    #[allow(unused)]
     pub fn to_str(&self) -> &str {
         match self {
             Value::EqualsChar => Self::STR_PRIMITIVE_VALUE,
