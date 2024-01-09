@@ -42,8 +42,7 @@ impl Token {
         &self.offset_start_inclusive
     }
 
-    #[allow(unused)]
-    pub fn offset_end_exclusive(&self) -> &usize {
+    pub fn _offset_end_exclusive(&self) -> &usize {
         &self.offset_end_exclusive
     }
 }

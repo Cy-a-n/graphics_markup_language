@@ -8,7 +8,7 @@ use crate::token::Token;
 use crate::token::Value;
 use colored::Colorize;
 
-#[derive(Display, Debug)]
+#[derive(Display, Debug, PartialEq)]
 pub enum Error<'a> {
     Parser(ParserError<'a>),
     LexerInvalidChar {
@@ -64,8 +64,7 @@ impl Error<'_> {
     }
 }
 
-#[derive(Display, Debug)]
-
+#[derive(Display, Debug, PartialEq)]
 pub enum ParserError<'a> {
     TokensUnexpectedEnd {
         parsed_type: ParsedType,
@@ -109,8 +108,8 @@ impl ParserError<'_> {
     }
 }
 
-#[derive(Display, Debug)]
 #[allow(unused)]
+#[derive(Display, Debug, PartialEq)]
 pub enum ParsedType {
     #[strum(serialize = "u8")]
     U8,
@@ -192,11 +191,9 @@ fn source_code_with_error(tokens: &[Token], error_token: &Token, error_message: 
         for (tokens, source_code) in tokens_in_lines.into_iter().zip(source_code.iter_mut()) {
             for token in tokens {
                 // Consider white spaces between the tokens
-                let token_start = token.offset_start_inclusive();
-                let source_code_len = source_code.len();
                 source_code.push_str(&format!(
                     "{}{}",
-                    " ".repeat(token_start - source_code_len),
+                    " ".repeat(token.offset_start_inclusive() - source_code.len()),
                     token.value(),
                 ));
             }
