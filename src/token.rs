@@ -83,7 +83,7 @@ pub enum Value {
     Vertices,
     VisibleExtent,
     BackgroundColor,
-    Shapes,
+    Children,
 }
 
 impl Value {
@@ -159,7 +159,7 @@ impl Value {
             Value::Vertices => Self::LENGTH_ATTRIBUTE_VERTICES,
             Value::VisibleExtent => Self::LENGTH_ATTRIBUTE_VISIBLE_EXTENT,
             Value::BackgroundColor => Self::LENGTH_ATTRIBUTE_BACKGROUND_COLOR,
-            Value::Shapes => Self::LENGTH_ATTRIBUTE_SHAPES,
+            Value::Children => Self::LENGTH_ATTRIBUTE_SHAPES,
         }
     }
 
@@ -187,7 +187,7 @@ impl Value {
             Value::Vertices => Self::STR_ATTRIBUTE_VERTICES,
             Value::VisibleExtent => Self::STR_ATTRIBUTE_VISIBLE_EXTENT,
             Value::BackgroundColor => Self::STR_ATTRIBUTE_BACKGROUND_COLOR,
-            Value::Shapes => Self::STR_ATTRIBUTE_SHAPES,
+            Value::Children => Self::STR_ATTRIBUTE_SHAPES,
         }
     }
 }

@@ -11,7 +11,7 @@ use colored::Colorize;
 #[derive(Display, Debug, PartialEq)]
 pub enum Error<'a> {
     Parser(ParserError<'a>),
-    LexerInvalidChar {
+    LexerUnexpectedChar {
         error_char: char,
         expected_chars: Vec<char>,
         error_line_content: String,
@@ -37,7 +37,7 @@ impl Error<'_> {
     fn error_type(&self) -> String {
         match self {
             Parser(error) => format!("{self}.{}", error.error_type()),
-            Error::LexerInvalidChar {
+            Error::LexerUnexpectedChar {
                 error_char: _,
                 expected_chars: _,
                 error_line_content: _,
@@ -50,7 +50,7 @@ impl Error<'_> {
     fn reason(&self) -> String {
         match self {
             Parser(error) => error.reason(),
-            Error::LexerInvalidChar {
+            Error::LexerUnexpectedChar {
                 error_char,
                 expected_chars,
                 error_line_number,
@@ -231,7 +231,7 @@ mod tests {
             Token::new(0, 0, StructStart),
             Token::new(1, 4, VisibleExtent),
             Token::new(2, 4, BackgroundColor),
-            Token::new(3, 4, Shapes),
+            Token::new(3, 4, Children),
             Token::new(4, 0, StructEnd),
         ];
         let error_token = tokens[0].clone();

@@ -37,6 +37,7 @@ pub struct Polygon {
     pub border_color: Color,
     pub fill_color: Color,
     pub vertices: Vec<Point>,
+    pub children: Vec<Polygon>,
 }
 
 impl Polygon {
@@ -49,58 +50,7 @@ impl Polygon {
             border_color: Color::default(),
             fill_color: Color::default(),
             vertices: vec![],
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Group {
-    pub position: Point,
-    pub rotation: u8,
-    pub shapes: Vec<Polygon>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Shape {
-    #[allow(unused)]
-    Polygon(Polygon),
-    #[allow(unused)]
-    Group(Group),
-}
-
-#[derive(Debug, PartialEq)]
-pub struct AmbiguousElement {
-    pub position: Point,
-    pub rotation: u8,
-}
-
-impl AmbiguousElement {
-    #[allow(unused)]
-    pub fn default() -> Self {
-        AmbiguousElement {
-            position: Point::default(),
-            rotation: 0,
-        }
-    }
-
-    #[allow(unused)]
-    pub fn into_polygon(self) -> Polygon {
-        Polygon {
-            position: self.position,
-            rotation: self.rotation,
-            width: 0,
-            border_color: Color::default(),
-            fill_color: Color::default(),
-            vertices: vec![],
-        }
-    }
-
-    #[allow(unused)]
-    pub fn into_group(self) -> Group {
-        Group {
-            position: self.position,
-            rotation: self.rotation,
-            shapes: vec![],
+            children: vec![],
         }
     }
 }
@@ -109,7 +59,7 @@ impl AmbiguousElement {
 pub struct Main {
     pub visible_extent: Point,
     pub background_color: Color,
-    pub shapes: Vec<Shape>,
+    pub shapes: Vec<Polygon>,
 }
 
 impl Main {

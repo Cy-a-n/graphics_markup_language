@@ -1,6 +1,6 @@
-mod color_parser;
-mod i16_parser;
+mod color;
+mod i16;
 mod macros;
-mod point_parser;
+mod point;
 mod polygon;
-mod u8_parser;
+mod u8;

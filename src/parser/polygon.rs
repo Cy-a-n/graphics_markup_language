@@ -1,10 +1,10 @@
 use self::State::*;
-use super::color_parser::parse_color;
-use super::i16_parser::parse_i16;
+use super::color::parse_color;
+use super::i16::parse_i16;
 use super::macros::transition;
 use super::macros::transition_peek;
-use super::point_parser::parse_point;
-use super::u8_parser::parse_u8;
+use super::point::parse_point;
+use super::u8::parse_u8;
 use crate::draw_elements::Polygon;
 use crate::error_handling::Error;
 use crate::error_handling::Error::Parser;
@@ -13,7 +13,7 @@ use crate::error_handling::ParserError::{UnexpectedEnd, UnexpectedToken};
 use crate::token::Token;
 use crate::token::Value;
 use crate::token::Value::{
-    ArrayEnd, ArrayStart, BorderColor, Equals, FillColor, Position, Rotation, StructEnd,
+    ArrayEnd, ArrayStart, BorderColor, Children, Equals, FillColor, Position, Rotation, StructEnd,
     StructStart, Vertices, Width,
 };
 use std::iter::Enumerate;
@@ -73,7 +73,10 @@ enum State {
     FillColorValue(Polygon),
     Vertices(Polygon),
     Vertex(Polygon),
-    VerticesEnd(Polygon),
+    VerticesValue(Polygon),
+    Children(Polygon),
+    Child(Polygon),
+    ChildrenValue(Polygon),
     Return(Polygon),
     UnexpectedEnd(Vec<Value>),
     UnexpectedToken(Vec<Value>, usize),
@@ -97,7 +100,7 @@ impl State {
                 StructStart => {
                     let mut value = Polygon::default();
                     value.position = match parse_point(tokens_iter, tokens) {
-                        Ok(mut value) => value,
+                        Ok(value) => value,
                         Err(error) => return Err(error),
                     };
                     PositionValue(value)
@@ -110,7 +113,7 @@ impl State {
                 Width => {tokens_iter.next(); State::Width(value)},
                 Equals => {
                     value.rotation = match parse_u8(tokens_iter, tokens) {
-                        Ok(mut value) => value,
+                        Ok(value) => value,
                         Err(error) => return Err(error),
                     };
                     RotationValue(value)
@@ -123,7 +126,7 @@ impl State {
                 BorderColor => {tokens_iter.next(); State::BorderColor(value)},
                 Equals => {
                     value.width = match parse_i16(tokens_iter, tokens) {
-                        Ok(mut value) => value,
+                        Ok(value) => value,
                         Err(error) => return Err(error),
                     };
                     WidthValue(value)
@@ -136,7 +139,7 @@ impl State {
                 FillColor => {tokens_iter.next(); State::FillColor(value)},
                 StructStart => {
                     value.border_color = match parse_color(tokens_iter, tokens) {
-                        Ok(mut value) => value,
+                        Ok(value) => value,
                         Err(error) => return Err(error),
                     };
                     BorderColorValue(value)
@@ -159,11 +162,11 @@ impl State {
                 Vertices => State::Vertices(value),
             ),
             State::Vertices(value) => transition!(tokens_iter,
-                StructEnd => Return(value),
+                Children => State::Children(value),
                 ArrayStart => Vertex(value),
             ),
             Vertex(mut value) => transition_peek!(tokens_iter,
-                ArrayEnd => {tokens_iter.next(); VerticesEnd(value)},
+                ArrayEnd => {tokens_iter.next(); VerticesValue(value)},
                 StructStart => {
                     value.vertices.push(match parse_point(tokens_iter, tokens) {
                         Ok(value) => value,
@@ -172,10 +175,27 @@ impl State {
                     Vertex(value)
                 },
             ),
-            VerticesEnd( value) => transition!(tokens_iter,
+            VerticesValue( value) => transition!(tokens_iter,
+                Children => State::Children(value),
+            ),
+            State::Children(value) => transition!(tokens_iter,
+                StructEnd => Return(value),
+                ArrayStart => Child(value),
+            ),
+            Child(mut value) => transition_peek!(tokens_iter,
+                ArrayEnd => {tokens_iter.next(); ChildrenValue(value)},
+                StructStart => {
+                    value.children.push(match parse_polygon(tokens_iter, tokens) {
+                        Ok(value) => value,
+                        Err(error) => return Err(error),
+                    });
+                    Child(value)
+                },
+            ),
+            ChildrenValue(value) => transition!(tokens_iter,
                 StructEnd => Return(value),
             ),
-            Return( _) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
+            Return(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
             UnexpectedEnd(_) => panic!("BUG: The `next_state` method should never be called on the `TokensUnexpectedEnd` state. 'state': '{self:?}'."),
             UnexpectedToken(_, _) => panic!("BUG: The `next_state` method should never be called on the `UnexpectedToken` state. 'state': '{self:?}'."),
         })
@@ -186,9 +206,9 @@ impl State {
 mod tests {
     use super::*;
     use crate::{
-        draw_elements::{self, Color, Point, Shape},
+        draw_elements::{self, Color, Point},
         error_handling::{
-            ParsedType::Polygon,
+            ParsedType,
             ParserError::{UnexpectedEnd, UnexpectedToken},
         },
         token::{
@@ -204,7 +224,7 @@ mod tests {
     fn unexpected_token() {
         let tokens = vec![Token::default(Equals)];
         let expected = Parser(UnexpectedToken {
-            parsed_type: Polygon,
+            parsed_type: ParsedType::Polygon,
             current_value_slice: &tokens,
             expected_tokens: vec![StructStart],
         });
@@ -219,7 +239,7 @@ mod tests {
     fn tokens_unexpected_end() {
         let tokens = vec![Token::default(StructStart)];
         let expected = Error::Parser(UnexpectedEnd {
-            parsed_type: Polygon,
+            parsed_type: ParsedType::Polygon,
             current_value_slice: &tokens,
             expected_tokens: vec![Position],
         });
@@ -240,6 +260,7 @@ mod tests {
             Token::default(BorderColor),
             Token::default(FillColor),
             Token::default(Vertices),
+            Token::default(Children),
             Token::default(StructEnd),
         ];
         let expected = draw_elements::Polygon::default();
@@ -288,6 +309,27 @@ mod tests {
             Token::default(Y),
             Token::default(StructEnd),
             Token::default(ArrayEnd),
+            Token::default(Children),
+            Token::default(ArrayStart),
+            Token::default(StructStart),
+            Token::default(Position),
+            Token::default(Rotation),
+            Token::default(Width),
+            Token::default(BorderColor),
+            Token::default(FillColor),
+            Token::default(Vertices),
+            Token::default(Children),
+            Token::default(StructEnd),
+            Token::default(StructStart),
+            Token::default(Position),
+            Token::default(Rotation),
+            Token::default(Width),
+            Token::default(BorderColor),
+            Token::default(FillColor),
+            Token::default(Vertices),
+            Token::default(Children),
+            Token::default(StructEnd),
+            Token::default(ArrayEnd),
             Token::default(StructEnd),
         ];
         let expected = draw_elements::Polygon {
@@ -297,6 +339,7 @@ mod tests {
             border_color: Color::default(),
             fill_color: Color::default(),
             vertices: vec![Point::default(), Point::default()],
+            children: vec![Polygon::default(), Polygon::default()],
         };
         let actual = parse_polygon(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
