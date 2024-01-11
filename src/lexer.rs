@@ -25,7 +25,7 @@ pub fn to_tokens(source_code: &str) -> Result<Vec<Token>, Error> {
                 return Result::Err(LexerInvalidChar {
                     error_char: char,
                     expected_chars,
-                    error_line_content: line_content,
+                    error_line_content: line_content.to_string(),
                     error_line_number: line_number,
                     error_offset: offset,
                 });

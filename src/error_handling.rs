@@ -3,7 +3,7 @@ use std::fmt::Display;
 use strum_macros::Display;
 
 use self::Error::Parser;
-use self::ParserError::TokensUnexpectedEnd;
+use self::ParserError::UnexpectedEnd;
 use crate::token::Token;
 use crate::token::Value;
 use colored::Colorize;
@@ -14,7 +14,7 @@ pub enum Error<'a> {
     LexerInvalidChar {
         error_char: char,
         expected_chars: Vec<char>,
-        error_line_content: &'a str,
+        error_line_content: String,
         error_line_number: usize,
         error_offset: usize,
     },
@@ -66,7 +66,7 @@ impl Error<'_> {
 
 #[derive(Display, Debug, PartialEq)]
 pub enum ParserError<'a> {
-    TokensUnexpectedEnd {
+    UnexpectedEnd {
         parsed_type: ParsedType,
         current_value_slice: &'a [Token],
         expected_tokens: Vec<Value>,
@@ -85,7 +85,7 @@ impl ParserError<'_> {
 
     fn reason(&self) -> String {
         match self {
-            TokensUnexpectedEnd {
+            UnexpectedEnd {
                 parsed_type,
                 current_value_slice,
                 expected_tokens,

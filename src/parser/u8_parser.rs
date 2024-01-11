@@ -1,9 +1,9 @@
 use self::States::*;
-use super::macros::{sub_parser_branch, sub_parser_return_branch};
+use super::macros::{transition, transition_return_on_unexpected};
 use crate::error_handling::Error;
 use crate::error_handling::Error::Parser;
 use crate::error_handling::ParsedType::U8;
-use crate::error_handling::ParserError::TokensUnexpectedEnd;
+use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
@@ -20,9 +20,9 @@ pub(super) fn parse_u8<'a>(tokens_iter: &'a mut Peekable<Enumerate<Iter<'a, Toke
     loop {
         state = state.next_state(tokens_iter);
         match state {
-            End(value) => return Ok(value),
-            TokensUnexpectedEnd(expected_tokens) => return Err(Parser(TokensUnexpectedEnd { parsed_type: U8, current_value_slice: slice_from_value_start, expected_tokens })),
-            UnexpectedToken(expected_tokens) => return Err(Parser(UnexpectedToken { parsed_type: U8, current_value_slice: &slice_from_value_start[..tokens_iter.next().expect("BUG: 'tokens_iter' should have at least one token.").0 + 1], expected_tokens })),
+            Return(value) => return Ok(value),
+            UnexpectedEnd(expected_tokens) => return Err(Parser(UnexpectedEnd { parsed_type: U8, current_value_slice: slice_from_value_start, expected_tokens })),
+            UnexpectedToken(expected_tokens, i) => return Err(Parser(UnexpectedToken { parsed_type: U8, current_value_slice: &slice_from_value_start[..i + 1], expected_tokens })),
             _ => {},
         }
     }
@@ -39,52 +39,52 @@ enum States {
     Digit4(u8),
     Digit5(u8),
     Digit6(u8),
-    End(u8),
-    TokensUnexpectedEnd(Vec<Value>),
-    UnexpectedToken(Vec<Value>),
+    Return(u8),
+    UnexpectedEnd(Vec<Value>),
+    UnexpectedToken(Vec<Value>, usize),
 }
 
 impl States {
     fn next_state(self, tokens: &mut Peekable<Enumerate<Iter<Token>>>) -> Self {
         match self {
-            Start => sub_parser_branch!(tokens,
+            Start => transition!(tokens,
                 EqualsChar => EqualsSign
             ),
-            EqualsSign => sub_parser_branch!(tokens,
+            EqualsSign => transition!(tokens,
                 Zero => Digit0(0),
                 One => Digit0(1),
             ),
-            Digit0(value) => sub_parser_return_branch!(tokens, value, 
+            Digit0(value) => transition_return_on_unexpected!(tokens, value, 
                 Zero => Digit1(value << 1),
                 One => Digit1((value << 1) + 1),
             ),
-            Digit1(value) => sub_parser_return_branch!(tokens, value,
+            Digit1(value) => transition_return_on_unexpected!(tokens, value,
                 Zero => Digit2(value << 1),
                 One => Digit2((value << 1) + 1),
             ),
-            Digit2(value) => sub_parser_return_branch!(tokens, value,
+            Digit2(value) => transition_return_on_unexpected!(tokens, value,
                 Zero => Digit3(value << 1),
                 One => Digit3((value << 1) + 1),
             ),
-            Digit3(value) => sub_parser_return_branch!(tokens, value,
+            Digit3(value) => transition_return_on_unexpected!(tokens, value,
                 Zero => Digit4(value << 1),
                 One => Digit4((value << 1) + 1),
             ),
-            Digit4(value) => sub_parser_return_branch!(tokens, value,
+            Digit4(value) => transition_return_on_unexpected!(tokens, value,
                 Zero => Digit5(value << 1),
                 One => Digit5((value << 1) + 1),
             ),
-            Digit5(value) => sub_parser_return_branch!(tokens, value,
+            Digit5(value) => transition_return_on_unexpected!(tokens, value,
                 Zero => Digit6(value << 1),
                 One => Digit6((value << 1) + 1),
             ),
-            Digit6(value) => sub_parser_return_branch!(tokens, value,
-                Zero => End(value << 1),
-                One => End((value << 1) + 1),
+            Digit6(value) => transition_return_on_unexpected!(tokens, value,
+                Zero => Return(value << 1),
+                One => Return((value << 1) + 1),
             ),
-            End(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
-            TokensUnexpectedEnd(_) => panic!("BUG: The `next_state` method should never be called on the `TokensUnexpectedEnd` state. 'state': '{self:?}'."),
-            UnexpectedToken(_) => panic!("BUG: The `next_state` method should never be called on the `UnexpectedToken` state. 'state': '{self:?}'."),
+            Return(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
+            UnexpectedEnd(_) => panic!("BUG: The `next_state` method should never be called on the `TokensUnexpectedEnd` state. 'state': '{self:?}'."),
+            UnexpectedToken(_, _) => panic!("BUG: The `next_state` method should never be called on the `UnexpectedToken` state. 'state': '{self:?}'."),
         }
     }
 }
@@ -92,10 +92,10 @@ impl States {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{token::Value::{One, StructEnd, Zero}, error_handling::ParserError::{UnexpectedToken, TokensUnexpectedEnd}};
+    use crate::{token::Value::{One, StructEnd, Zero}, error_handling::ParserError::{UnexpectedToken, UnexpectedEnd}};
 
     #[test]
-    fn test_parse_u8_0_full() {
+    fn parse_u8_0_full() {
         let tokens = vec![
             Token::default(EqualsChar),
             Token::default(Zero),
@@ -115,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_u8_max() {
+    fn parse_u8_max() {
         let tokens = vec![
             Token::default(EqualsChar),
             Token::default(One),
@@ -136,7 +136,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_u8_random_partial() {
+    fn parse_u8_random_partial() {
         let tokens = vec![
             Token::default(EqualsChar),
             Token::default(Zero),
@@ -153,7 +153,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_u8_random_partial_1() {
+    fn parse_u8_random_partial_1() {
         let tokens = vec![
             Token::default(EqualsChar),
             Token::default(Zero),
@@ -171,7 +171,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unexpected_token() {
+    fn unexpected_token() {
         let tokens = vec![
             Token::default(EqualsChar),
             Token::new(0, 1, StructEnd),
@@ -185,11 +185,11 @@ mod tests {
     }
 
     #[test]
-    fn test_tokens_unexpected_end() {
+    fn tokens_unexpected_end() {
         let tokens = vec![
             Token::default(EqualsChar),
         ];
-        let expected = Error::Parser(TokensUnexpectedEnd { parsed_type: U8, current_value_slice: &tokens, expected_tokens: vec![Zero, One]});
+        let expected = Error::Parser(UnexpectedEnd { parsed_type: U8, current_value_slice: &tokens, expected_tokens: vec![Zero, One]});
         if let Err(actual) = parse_u8(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
         } else {

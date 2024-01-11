@@ -1,17 +1,33 @@
-macro_rules! sub_parser_branch {
+/// # Transition
+/// Represents a transition in the parser.
+macro_rules! transition {
+    ($tokens:expr, $( $expected_input:pat => $next_state:expr ),* $(,)?) => {
+        {
+            match $tokens.next() {
+                None => UnexpectedEnd(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
+                Some((i, token)) => {
+                   match token.value() {
+                   $( $expected_input => $next_state, )*
+                   _ => UnexpectedToken(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*], i),
+                   }
+                }
+            }
+        }
+    };
+}
+
+/// # Transition
+/// Represents a transition in the parser that calls `tokens.peek()` instead of `tokens.next()`.
+/// Useful if another function called in transition will advance `tokens`.
+macro_rules! transition_peek {
     ($tokens:expr, $( $expected_input:pat => $next_state:expr ),* $(,)?) => {
         {
             match $tokens.peek() {
-                None => TokensUnexpectedEnd(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
-                Some((_, token)) => {
+                None => UnexpectedEnd(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
+                Some((i, token)) => {
                    match token.value() {
-                   $(
-                       $expected_input => {
-                            $tokens.next();
-                            $next_state
-                       },
-                   )*
-                   _ => UnexpectedToken(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
+                    $( $expected_input => $next_state, )*
+                   _ => UnexpectedToken(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*], *i),
                    }
                 }
             }
@@ -19,20 +35,23 @@ macro_rules! sub_parser_branch {
     };
 }
 
-macro_rules! sub_parser_return_branch {
+/// # Transition
+/// Represents a transition in the parser. If `$input` is matches on the catchall `_` this macro return an `Return` state instead of an `UnexpectedToken` state.
+/// Useful if the finite automate has optional characters in this state.
+macro_rules! transition_return_on_unexpected {
     ($tokens:expr, $value: expr, $( $expected_input:pat => $next_state:expr ),* $(,)?) => {
         {
             match $tokens.peek() {
-                None => TokensUnexpectedEnd(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
+                None => UnexpectedEnd(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
                 Some((_, token)) => {
                    match token.value() {
-                   $(
-                       $expected_input => {
-                           $tokens.next();
-                           $next_state
-                       },
-                   )*
-                   _ => End($value),
+                    $(
+                        $expected_input => {
+                            $tokens.next();
+                            $next_state
+                        }
+                    )*
+                   _ => Return($value),
                    }
                 }
             }
@@ -40,4 +59,4 @@ macro_rules! sub_parser_return_branch {
     };
 }
 
-pub(crate) use {sub_parser_branch, sub_parser_return_branch};
+pub(crate) use {transition, transition_peek, transition_return_on_unexpected};
