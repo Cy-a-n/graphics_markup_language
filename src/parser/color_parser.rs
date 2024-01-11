@@ -1,4 +1,4 @@
-use self::States::*;
+use self::State::*;
 use super::macros::transition;
 use super::macros::transition_peek;
 use super::u8_parser::parse_u8;
@@ -11,7 +11,7 @@ use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
 use crate::token::Value::{
-    AttributBlue, AttributGreen, AttributRed, EqualsChar, StructEnd, StructStart,
+    Blue, Green, Red, Equals, StructEnd, StructStart,
 };
 use std::iter::Enumerate;
 use std::str::FromStr;
@@ -55,21 +55,21 @@ pub(super) fn parse_color<'a>(
 }
 
 #[derive(Debug)]
-enum States {
+enum State {
     Start,
     StructStart,
-    AttributRed,
-    AttributRedValue(Color),
-    AttributGreen(Color),
-    AttributGreenValue(Color),
-    AttributBlue(Color),
-    AttributBlueValue(Color),
+    Red,
+    RedValue(Color),
+    Green(Color),
+    GreenValue(Color),
+    Blue(Color),
+    BlueValue(Color),
     Return(Color),
     UnexpectedEnd(Vec<Value>),
     UnexpectedToken(Vec<Value>, usize),
 }
 
-impl States {
+impl State {
     fn next_state<'a>(
         self,
         tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
@@ -77,49 +77,49 @@ impl States {
     ) -> Result<Self, Error<'a>> {
         Ok(match self {
             Start => transition!(tokens_iter,
-                StructStart => States::StructStart,
+                StructStart => State::StructStart,
             ),
-            States::StructStart => transition!(tokens_iter,
-                AttributRed => States::AttributRed,
+            State::StructStart => transition!(tokens_iter,
+                Red => State::Red,
             ),
-            States::AttributRed => transition_peek!(tokens_iter,
-                AttributGreen => {tokens_iter.next(); States::AttributGreen(Color::default())},
-                EqualsChar => {
+            State::Red => transition_peek!(tokens_iter,
+                Green => {tokens_iter.next(); State::Green(Color::default())},
+                Equals => {
                     let mut value = Color::default();
                     value.red = match parse_u8(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
-                    AttributRedValue(value)
+                    RedValue(value)
                 },
             ),
-            AttributRedValue(value) => transition!(tokens_iter,
-                AttributGreen => States::AttributGreen(value),
+            RedValue(value) => transition!(tokens_iter,
+                Green => State::Green(value),
             ),
-            States::AttributGreen(mut value) => transition_peek!(tokens_iter,
-                AttributBlue => {tokens_iter.next(); States::AttributBlue(value)},
-                EqualsChar => {
+            State::Green(mut value) => transition_peek!(tokens_iter,
+                Blue => {tokens_iter.next(); State::Blue(value)},
+                Equals => {
                     value.green = match parse_u8(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
-                    AttributGreenValue(value)
+                    GreenValue(value)
                 },
             ),
-            AttributGreenValue(value) => transition!(tokens_iter,
-                AttributBlue => States::AttributBlue(value),
+            GreenValue(value) => transition!(tokens_iter,
+                Blue => State::Blue(value),
             ),
-            States::AttributBlue(mut value) => transition_peek!(tokens_iter,
+            State::Blue(mut value) => transition_peek!(tokens_iter,
                 StructEnd => {tokens_iter.next(); Return(value)},
-                EqualsChar => {
+                Equals => {
                     value.blue = match parse_u8(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
-                    AttributBlueValue(value)
+                    BlueValue(value)
                 },                
             ),
-            AttributBlueValue(value) => transition!(tokens_iter,
+            BlueValue(value) => transition!(tokens_iter,
                 StructEnd => Return(value),
             ),
             Return(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
@@ -140,13 +140,13 @@ mod tests {
         },
         token::{
             Token,
-            Value::{ EqualsChar, One, StructEnd, StructStart, Zero},
+            Value::{ Equals, One, StructEnd, StructStart, Zero},
         },
     };
 
     #[test]
     fn unexpected_token() {
-        let tokens = vec![Token::default(EqualsChar)];
+        let tokens = vec![Token::default(Equals)];
         let expected = Parser(UnexpectedToken {
             parsed_type: Color,
             current_value_slice: &tokens,
@@ -165,7 +165,7 @@ mod tests {
         let expected = Error::Parser(UnexpectedEnd {
             parsed_type: Color,
             current_value_slice: &tokens,
-            expected_tokens: vec![AttributRed],
+            expected_tokens: vec![Red],
         });
         if let Err(actual) = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
@@ -178,9 +178,9 @@ mod tests {
     fn minimum() {
         let tokens = vec![
             Token::default(StructStart),
-            Token::default(AttributRed),
-            Token::default(AttributGreen),
-            Token::default(AttributBlue),
+            Token::default(Red),
+            Token::default(Green),
+            Token::default(Blue),
             Token::default(StructEnd),
         ];
         let expected = draw_elements::Color::default();
@@ -194,15 +194,15 @@ mod tests {
     fn maximum() {
         let tokens = vec![
             Token::default(StructStart),
-            Token::default(AttributRed),
-            Token::default(EqualsChar),
+            Token::default(Red),
+            Token::default(Equals),
             Token::default(One),
-            Token::default(AttributGreen),
-            Token::default(EqualsChar),
+            Token::default(Green),
+            Token::default(Equals),
             Token::default(One),
             Token::default(Zero),
-            Token::default(AttributBlue),
-            Token::default(EqualsChar),
+            Token::default(Blue),
+            Token::default(Equals),
             Token::default(One),
             Token::default(Zero),
             Token::default(Zero),

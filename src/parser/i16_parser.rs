@@ -1,4 +1,4 @@
-use self::States::*;
+use self::State::*;
 use super::macros::{transition, transition_return_on_unexpected};
 use crate::error_handling::Error;
 use crate::error_handling::Error::Parser;
@@ -7,7 +7,7 @@ use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
-use crate::token::Value::{EqualsChar, NegativeSign, One, PositiveSign, Zero};
+use crate::token::Value::{Equals, NegativeSign, One, PositiveSign, Zero};
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
@@ -50,7 +50,7 @@ pub(super) fn parse_i16<'a>(
 }
 
 #[derive(Debug)]
-enum States {
+enum State {
     Start,
     EqualsSign,
     Sign(bool),
@@ -73,11 +73,11 @@ enum States {
     UnexpectedToken(Vec<Value>, usize),
 }
 
-impl States {
+impl State {
     fn next_state(self, tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>) -> Self {
         match self {
             Start => transition!(tokens_iter,
-                EqualsChar => EqualsSign
+                Equals => EqualsSign
             ),
             EqualsSign => transition!(tokens_iter,
                 PositiveSign => Sign(false),
@@ -163,7 +163,7 @@ mod tests {
     #[test]
     fn unsigned_0_full() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn positive_0_full() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(PositiveSign),
             Token::default(Zero),
             Token::default(Zero),
@@ -223,7 +223,7 @@ mod tests {
     #[test]
     fn negative_0_full() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(NegativeSign),
             Token::default(Zero),
             Token::default(Zero),
@@ -254,7 +254,7 @@ mod tests {
     #[test]
     fn unsigned_max() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(One),
             Token::default(One),
             Token::default(One),
@@ -282,7 +282,7 @@ mod tests {
     #[test]
     fn positive_max() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(PositiveSign),
             Token::default(One),
             Token::default(One),
@@ -311,7 +311,7 @@ mod tests {
     #[test]
     fn negative_max() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(NegativeSign),
             Token::default(One),
             Token::default(One),
@@ -340,7 +340,7 @@ mod tests {
     #[test]
     fn random_partial() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(NegativeSign),
             Token::default(One),
             Token::default(One),
@@ -362,7 +362,7 @@ mod tests {
     #[test]
     fn random_partial_1() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(PositiveSign),
             Token::default(Zero),
             Token::default(One),
@@ -381,7 +381,7 @@ mod tests {
 
     #[test]
     fn unexpected_token() {
-        let tokens = vec![Token::default(EqualsChar), Token::new(0, 1, StructEnd)];
+        let tokens = vec![Token::default(Equals), Token::new(0, 1, StructEnd)];
         let expected = Parser(UnexpectedToken {
             parsed_type: U8,
             current_value_slice: &tokens,
@@ -396,7 +396,7 @@ mod tests {
 
     #[test]
     fn tokens_unexpected_end() {
-        let tokens = vec![Token::default(EqualsChar)];
+        let tokens = vec![Token::default(Equals)];
         let expected = Error::Parser(UnexpectedEnd {
             parsed_type: U8,
             current_value_slice: &tokens,

@@ -229,9 +229,9 @@ mod tests {
     fn test_source_code_with_error() {
         let tokens = vec![
             Token::new(0, 0, StructStart),
-            Token::new(1, 4, AttributVisibleExtent),
-            Token::new(2, 4, AttributBackgroundColor),
-            Token::new(3, 4, AttributShapes),
+            Token::new(1, 4, VisibleExtent),
+            Token::new(2, 4, BackgroundColor),
+            Token::new(3, 4, Shapes),
             Token::new(4, 0, StructEnd),
         ];
         let error_token = tokens[0].clone();
@@ -245,9 +245,9 @@ mod tests {
     fn test_source_code_with_error_1() {
         let tokens = vec![
             Token::new(4, 3, StructStart),
-            Token::new(4, 5, AttributRed),
-            Token::new(4, 9, AttributGreen),
-            Token::new(4, 15, AttributBlue),
+            Token::new(4, 5, Red),
+            Token::new(4, 9, Green),
+            Token::new(4, 15, Blue),
             Token::new(4, 20, StructEnd),
         ];
         let error_token = tokens[2].clone();

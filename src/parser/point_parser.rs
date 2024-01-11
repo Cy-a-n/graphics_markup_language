@@ -1,4 +1,4 @@
-use self::States::*;
+use self::State::*;
 use super::i16_parser::parse_i16;
 use super::macros::transition;
 use super::macros::transition_peek;
@@ -10,7 +10,7 @@ use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
-use crate::token::Value::{AttributX, AttributY, EqualsChar, StructEnd, StructStart};
+use crate::token::Value::{Equals, StructEnd, StructStart, X, Y};
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
@@ -53,19 +53,19 @@ pub(super) fn parse_point<'a>(
 }
 
 #[derive(Debug)]
-enum States {
+enum State {
     Start,
     StructStart,
-    AttributX,
-    AttributXValue(Point),
-    AttributY(Point),
-    AttributYValue(Point),
+    X,
+    XValue(Point),
+    Y(Point),
+    YValue(Point),
     Return(Point),
     UnexpectedEnd(Vec<Value>),
     UnexpectedToken(Vec<Value>, usize),
 }
 
-impl States {
+impl State {
     fn next_state<'a>(
         self,
         tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
@@ -73,36 +73,36 @@ impl States {
     ) -> Result<Self, Error<'a>> {
         Ok(match self {
             Start => transition!(tokens_iter,
-                StructStart => States::StructStart,
+                StructStart => State::StructStart,
             ),
-            States::StructStart => transition!(tokens_iter,
-                AttributX => States::AttributX,
+            State::StructStart => transition!(tokens_iter,
+                X => State::X,
             ),
-            States::AttributX => transition_peek!(tokens_iter,
-                AttributY => {tokens_iter.next(); States::AttributY(Point::default())},
-                EqualsChar => {
+            State::X => transition_peek!(tokens_iter,
+                Y => {tokens_iter.next(); State::Y(Point::default())},
+                Equals => {
                     let mut value = Point::default();
                     value.x = match parse_i16(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
-                    AttributXValue(value)
+                    XValue(value)
                 },
             ),
-            AttributXValue(value) => transition!(tokens_iter,
-                AttributY => States::AttributY(value),
+            XValue(value) => transition!(tokens_iter,
+                Y => State::Y(value),
             ),
-            States::AttributY(mut value) => transition_peek!(tokens_iter,
+            State::Y(mut value) => transition_peek!(tokens_iter,
                 StructEnd => {tokens_iter.next(); Return(value)},
-                EqualsChar => {
+                Equals => {
                     value.y = match parse_i16(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
-                    AttributYValue(value)
+                    YValue(value)
                 },
             ),
-            AttributYValue(value) => transition!(tokens_iter,
+            YValue(value) => transition!(tokens_iter,
                 StructEnd => Return(value),
             ),
             Return(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
@@ -123,13 +123,13 @@ mod tests {
         },
         token::{
             Token,
-            Value::{AttributX, AttributY, EqualsChar, One, StructEnd, StructStart, Zero},
+            Value::{Equals, One, StructEnd, StructStart, Zero, X, Y},
         },
     };
 
     #[test]
     fn unexpected_token() {
-        let tokens = vec![Token::default(EqualsChar)];
+        let tokens = vec![Token::default(Equals)];
         let expected = Parser(UnexpectedToken {
             parsed_type: Point,
             current_value_slice: &tokens,
@@ -148,7 +148,7 @@ mod tests {
         let expected = Error::Parser(UnexpectedEnd {
             parsed_type: Point,
             current_value_slice: &tokens,
-            expected_tokens: vec![AttributX],
+            expected_tokens: vec![X],
         });
         if let Err(actual) = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
@@ -161,8 +161,8 @@ mod tests {
     fn minimum() {
         let tokens = vec![
             Token::default(StructStart),
-            Token::default(AttributX),
-            Token::default(AttributY),
+            Token::default(X),
+            Token::default(Y),
             Token::default(StructEnd),
         ];
         let expected = draw_elements::Point::default();
@@ -176,11 +176,11 @@ mod tests {
     fn maximum() {
         let tokens = vec![
             Token::default(StructStart),
-            Token::default(AttributX),
-            Token::default(EqualsChar),
+            Token::default(X),
+            Token::default(Equals),
             Token::default(One),
-            Token::default(AttributY),
-            Token::default(EqualsChar),
+            Token::default(Y),
+            Token::default(Equals),
             Token::default(One),
             Token::default(Zero),
             Token::default(StructEnd),

@@ -1,4 +1,4 @@
-use self::States::*;
+use self::State::*;
 use super::macros::{transition, transition_return_on_unexpected};
 use crate::error_handling::Error;
 use crate::error_handling::Error::Parser;
@@ -7,7 +7,7 @@ use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
-use crate::token::Value::{EqualsChar,One, Zero};
+use crate::token::Value::{Equals,One, Zero};
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
@@ -29,7 +29,7 @@ pub(super) fn parse_u8<'a>(tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>, t
 }
 
 #[derive(Debug)]
-enum States {
+enum State {
     Start,
     EqualsSign,
     Digit0(u8),
@@ -44,11 +44,11 @@ enum States {
     UnexpectedToken(Vec<Value>, usize),
 }
 
-impl States {
+impl State {
     fn next_state(self, tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>) -> Self {
         match self {
             Start => transition!(tokens_iter,
-                EqualsChar => EqualsSign
+                Equals => EqualsSign
             ),
             EqualsSign => transition!(tokens_iter,
                 Zero => Digit0(0),
@@ -97,7 +97,7 @@ mod tests {
     #[test]
     fn parse_u8_0_full() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
@@ -117,7 +117,7 @@ mod tests {
     #[test]
     fn parse_u8_max() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(One),
             Token::default(One),
             Token::default(One),
@@ -138,7 +138,7 @@ mod tests {
     #[test]
     fn parse_u8_random_partial() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(Zero),
             Token::default(One),
             Token::default(Zero),
@@ -155,7 +155,7 @@ mod tests {
     #[test]
     fn parse_u8_random_partial_1() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::default(Zero),
             Token::default(One),
             Token::default(One),
@@ -173,7 +173,7 @@ mod tests {
     #[test]
     fn unexpected_token() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
             Token::new(0, 1, StructEnd),
         ];
         let expected = Parser(UnexpectedToken { parsed_type: U8, current_value_slice: &tokens, expected_tokens: vec![Zero, One]});
@@ -187,7 +187,7 @@ mod tests {
     #[test]
     fn tokens_unexpected_end() {
         let tokens = vec![
-            Token::default(EqualsChar),
+            Token::default(Equals),
         ];
         let expected = Error::Parser(UnexpectedEnd { parsed_type: U8, current_value_slice: &tokens, expected_tokens: vec![Zero, One]});
         if let Err(actual) = parse_u8(&mut tokens.iter().enumerate().peekable(), &tokens) {
