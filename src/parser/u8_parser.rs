@@ -13,7 +13,7 @@ use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
 
 #[allow(unused)]
-pub(super) fn parse_u8<'a>(tokens_iter: &'a mut Peekable<Enumerate<Iter<'a, Token>>>, tokens: &'a [Token]) -> Result<u8, Error<'a>> {
+pub(super) fn parse_u8<'a>(tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>, tokens: &'a [Token]) -> Result<u8, Error<'a>> {
     let slice_from_value_start = &tokens[tokens_iter.peek().expect("BUG: 'tokens_iter' should have at least one token.").0..];
     let mut state = Start;
 
@@ -45,40 +45,40 @@ enum States {
 }
 
 impl States {
-    fn next_state(self, tokens: &mut Peekable<Enumerate<Iter<Token>>>) -> Self {
+    fn next_state(self, tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>) -> Self {
         match self {
-            Start => transition!(tokens,
+            Start => transition!(tokens_iter,
                 EqualsChar => EqualsSign
             ),
-            EqualsSign => transition!(tokens,
+            EqualsSign => transition!(tokens_iter,
                 Zero => Digit0(0),
                 One => Digit0(1),
             ),
-            Digit0(value) => transition_return_on_unexpected!(tokens, value, 
+            Digit0(value) => transition_return_on_unexpected!(tokens_iter, value, 
                 Zero => Digit1(value << 1),
                 One => Digit1((value << 1) + 1),
             ),
-            Digit1(value) => transition_return_on_unexpected!(tokens, value,
+            Digit1(value) => transition_return_on_unexpected!(tokens_iter, value,
                 Zero => Digit2(value << 1),
                 One => Digit2((value << 1) + 1),
             ),
-            Digit2(value) => transition_return_on_unexpected!(tokens, value,
+            Digit2(value) => transition_return_on_unexpected!(tokens_iter, value,
                 Zero => Digit3(value << 1),
                 One => Digit3((value << 1) + 1),
             ),
-            Digit3(value) => transition_return_on_unexpected!(tokens, value,
+            Digit3(value) => transition_return_on_unexpected!(tokens_iter, value,
                 Zero => Digit4(value << 1),
                 One => Digit4((value << 1) + 1),
             ),
-            Digit4(value) => transition_return_on_unexpected!(tokens, value,
+            Digit4(value) => transition_return_on_unexpected!(tokens_iter, value,
                 Zero => Digit5(value << 1),
                 One => Digit5((value << 1) + 1),
             ),
-            Digit5(value) => transition_return_on_unexpected!(tokens, value,
+            Digit5(value) => transition_return_on_unexpected!(tokens_iter, value,
                 Zero => Digit6(value << 1),
                 One => Digit6((value << 1) + 1),
             ),
-            Digit6(value) => transition_return_on_unexpected!(tokens, value,
+            Digit6(value) => transition_return_on_unexpected!(tokens_iter, value,
                 Zero => Return(value << 1),
                 One => Return((value << 1) + 1),
             ),

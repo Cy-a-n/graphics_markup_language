@@ -1,8 +1,8 @@
 use self::States::*;
-use super::i16_parser::parse_i16;
 use super::macros::transition;
 use super::macros::transition_peek;
-use crate::draw_elements::Point;
+use super::u8_parser::parse_u8;
+use crate::draw_elements::Color;
 use crate::error_handling::Error;
 use crate::error_handling::Error::Parser;
 use crate::error_handling::ParsedType;
@@ -10,16 +10,18 @@ use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
-use crate::token::Value::{AttributX, AttributY, EqualsChar, StructEnd, StructStart};
+use crate::token::Value::{
+    AttributBlue, AttributGreen, AttributRed, EqualsChar, StructEnd, StructStart,
+};
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
 
 #[allow(unused)]
-pub(super) fn parse_point<'a>(
+pub(super) fn parse_color<'a>(
     tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
     tokens: &'a [Token],
-) -> Result<Point, Error<'a>> {
+) -> Result<Color, Error<'a>> {
     let slice_from_value_start = &tokens[tokens_iter
         .peek()
         .expect("BUG: 'tokens_iter' should have at least one token.")
@@ -35,14 +37,14 @@ pub(super) fn parse_point<'a>(
             Return(value) => return Ok(value),
             UnexpectedEnd(expected_tokens) => {
                 return Err(Parser(UnexpectedEnd {
-                    parsed_type: ParsedType::Point,
+                    parsed_type: ParsedType::Color,
                     current_value_slice: slice_from_value_start,
                     expected_tokens,
                 }))
             }
             UnexpectedToken(expected_tokens, i) => {
                 return Err(Parser(UnexpectedToken {
-                    parsed_type: ParsedType::Point,
+                    parsed_type: ParsedType::Color,
                     current_value_slice: &slice_from_value_start[..i + 1],
                     expected_tokens,
                 }))
@@ -56,11 +58,13 @@ pub(super) fn parse_point<'a>(
 enum States {
     Start,
     StructStart,
-    AttributX,
-    AttributXValue(Point),
-    AttributY(Point),
-    AttributYValue(Point),
-    Return(Point),
+    AttributRed,
+    AttributRedValue(Color),
+    AttributGreen(Color),
+    AttributGreenValue(Color),
+    AttributBlue(Color),
+    AttributBlueValue(Color),
+    Return(Color),
     UnexpectedEnd(Vec<Value>),
     UnexpectedToken(Vec<Value>, usize),
 }
@@ -76,33 +80,46 @@ impl States {
                 StructStart => States::StructStart,
             ),
             States::StructStart => transition!(tokens_iter,
-                AttributX => States::AttributX,
+                AttributRed => States::AttributRed,
             ),
-            States::AttributX => transition_peek!(tokens_iter,
-                AttributY => {tokens_iter.next(); States::AttributY(Point::default())},
+            States::AttributRed => transition_peek!(tokens_iter,
+                AttributGreen => {tokens_iter.next(); States::AttributGreen(Color::default())},
                 EqualsChar => {
-                    let mut value = Point::default();
-                    value.x = match parse_i16(tokens_iter, tokens) {
+                    let mut value = Color::default();
+                    value.red = match parse_u8(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
-                    AttributXValue(value)
+                    AttributRedValue(value)
                 },
             ),
-            AttributXValue(value) => transition!(tokens_iter,
-                AttributY => States::AttributY(value),
+            AttributRedValue(value) => transition!(tokens_iter,
+                AttributGreen => States::AttributGreen(value),
             ),
-            States::AttributY(mut value) => transition_peek!(tokens_iter,
+            States::AttributGreen(mut value) => transition_peek!(tokens_iter,
+                AttributBlue => {tokens_iter.next(); States::AttributBlue(value)},
+                EqualsChar => {
+                    value.green = match parse_u8(tokens_iter, tokens) {
+                        Ok(value) => value,
+                        Err(error) => return Err(error),
+                    };
+                    AttributGreenValue(value)
+                },
+            ),
+            AttributGreenValue(value) => transition!(tokens_iter,
+                AttributBlue => States::AttributBlue(value),
+            ),
+            States::AttributBlue(mut value) => transition_peek!(tokens_iter,
                 StructEnd => {tokens_iter.next(); Return(value)},
                 EqualsChar => {
-                    value.y = match parse_i16(tokens_iter, tokens) {
+                    value.blue = match parse_u8(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
-                    AttributYValue(value)
-                },
+                    AttributBlueValue(value)
+                },                
             ),
-            AttributYValue(value) => transition!(tokens_iter,
+            AttributBlueValue(value) => transition!(tokens_iter,
                 StructEnd => Return(value),
             ),
             Return(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
@@ -118,12 +135,12 @@ mod tests {
     use crate::{
         draw_elements,
         error_handling::{
-            ParsedType::Point,
+            ParsedType::Color,
             ParserError::{UnexpectedEnd, UnexpectedToken},
         },
         token::{
             Token,
-            Value::{AttributX, AttributY, EqualsChar, One, StructEnd, StructStart, Zero},
+            Value::{ EqualsChar, One, StructEnd, StructStart, Zero},
         },
     };
 
@@ -131,11 +148,11 @@ mod tests {
     fn unexpected_token() {
         let tokens = vec![Token::default(EqualsChar)];
         let expected = Parser(UnexpectedToken {
-            parsed_type: Point,
+            parsed_type: Color,
             current_value_slice: &tokens,
             expected_tokens: vec![StructStart],
         });
-        if let Err(actual) = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens) {
+        if let Err(actual) = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
         } else {
             panic!("The parser succeeded when it shouldn't have.")
@@ -146,11 +163,11 @@ mod tests {
     fn tokens_unexpected_end() {
         let tokens = vec![Token::default(StructStart)];
         let expected = Error::Parser(UnexpectedEnd {
-            parsed_type: Point,
+            parsed_type: Color,
             current_value_slice: &tokens,
-            expected_tokens: vec![AttributX],
+            expected_tokens: vec![AttributRed],
         });
-        if let Err(actual) = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens) {
+        if let Err(actual) = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
         } else {
             panic!("The parser succeeded when it shouldn't have.")
@@ -161,12 +178,13 @@ mod tests {
     fn minimum() {
         let tokens = vec![
             Token::default(StructStart),
-            Token::default(AttributX),
-            Token::default(AttributY),
+            Token::default(AttributRed),
+            Token::default(AttributGreen),
+            Token::default(AttributBlue),
             Token::default(StructEnd),
         ];
-        let expected = draw_elements::Point::default();
-        let actual = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens)
+        let expected = draw_elements::Color::default();
+        let actual = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);
@@ -176,17 +194,22 @@ mod tests {
     fn maximum() {
         let tokens = vec![
             Token::default(StructStart),
-            Token::default(AttributX),
+            Token::default(AttributRed),
             Token::default(EqualsChar),
             Token::default(One),
-            Token::default(AttributY),
+            Token::default(AttributGreen),
             Token::default(EqualsChar),
             Token::default(One),
             Token::default(Zero),
+            Token::default(AttributBlue),
+            Token::default(EqualsChar),
+            Token::default(One),
+            Token::default(Zero),
+            Token::default(Zero),
             Token::default(StructEnd),
         ];
-        let expected = draw_elements::Point { x: 1, y: 2 };
-        let actual = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens)
+        let expected = draw_elements::Color { red: 1, green: 2, blue: 4 };
+        let actual = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);
