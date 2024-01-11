@@ -27,7 +27,7 @@ impl Error<'_> {
 
     pub fn error_message(&self) -> String {
         format!(
-            "{} `{}`: {}",
+            "{} '{}': {}",
             "ERROR:".red(),
             self.error_type(),
             self.reason()
@@ -58,7 +58,7 @@ impl Error<'_> {
                 error_offset,
             } => {
                 let error_line_number = line_number_with_padding(*error_line_number);
-                format!("The lexer encountered the unexpected character '{error_char}'. Expected chars are {}.\n\n{error_line_number}{error_line_content}\n{error_line_number}{}", format_slice(expected_chars), error_in_source_code("Did not expect this token.", *error_offset, 1))
+                format!("The lexer encountered the unexpected character '{error_char}'. Expected chars are {}.\n\n{error_line_number}{error_line_content}\n{error_line_number}{}", format_slice(expected_chars), error_in_source_code("Did not expect this char.", *error_offset, 1))
             }
         }
     }
@@ -90,18 +90,18 @@ impl ParserError<'_> {
                 current_value_slice,
                 expected_tokens,
             } => format!(
-                "The source code ended while parsing a value of type `{parsed_type}`. Expected tokens are {}.\n\n{}.",
+                "The source code ended while parsing a value of type '{parsed_type}'. Expected tokens are {}.\n\n{}.",
                 format_slice(expected_tokens)
-                , source_code_with_error(current_value_slice, current_value_slice.last().unwrap_or_else(|| panic!("BUG: Expected the passed current_value_slice vec to have at least one token. `{self}`, {self:?}")),"Source code ends here.")
+                , source_code_with_error(current_value_slice, current_value_slice.last().unwrap_or_else(|| panic!("BUG: Expected the passed current_value_slice vec to have at least one token. '{self}', {self:?}")),"Unexpected end of source code here.")
             ),
             ParserError::UnexpectedToken { parsed_type, current_value_slice, expected_tokens } =>
             {
-                let error_token = current_value_slice.last().unwrap_or_else(|| panic!("BUG: Expected the passed current_value_slice vec to have at least one token. `{self}`, {self:?}")); 
+                let error_token = current_value_slice.last().unwrap_or_else(|| panic!("BUG: Expected the passed current_value_slice vec to have at least one token. '{self}', {self:?}")); 
                 format!(
-                    "Encountered an unexpected Token {} while parsing a value of type `{parsed_type}`. Expected tokens are {}.\n\n{}.",
+                    "Encountered an unexpected Token '{}' while parsing a value of type '{parsed_type}'. Expected tokens are {}.\n\n{}.",
                     error_token.value(),
                     format_slice(expected_tokens)
-                    , source_code_with_error(current_value_slice, error_token, "Wrong token here.")
+                    , source_code_with_error(current_value_slice, error_token, "Unexpected token here.")
                 )
             },
         }
@@ -159,12 +159,12 @@ fn source_code_with_error(tokens: &[Token], error_token: &Token, error_message: 
     {
         assert!(
             !tokens.is_empty(),
-            "BUG: `tokens.len()` is zero. `tokens`: {tokens:?}, `error_token`: {error_token:?}",
+            "BUG: 'tokens.len()' is zero. 'tokens': {tokens:?}, 'error_token': {error_token:?}",
         );
 
         assert!(
             tokens.contains(error_token),
-            "BUG: `tokens` does not contain `error_token`. `tokens`: {tokens:?}, `error_token`: {error_token:?}",
+            "BUG: 'tokens' does not contain 'error_token'. 'tokens': {tokens:?}, 'error_token': {error_token:?}",
         );
     }
 

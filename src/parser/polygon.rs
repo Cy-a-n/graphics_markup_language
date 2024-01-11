@@ -1,11 +1,10 @@
 use self::State::*;
-use super::color::parse_color;
+use super::color::Color;
 use super::i16::parse_i16;
 use super::macros::transition;
 use super::macros::transition_peek;
-use super::point::parse_point;
+use super::point::Point;
 use super::u8::parse_u8;
-use crate::draw_elements::Polygon;
 use crate::error_handling::Error;
 use crate::error_handling::Error::Parser;
 use crate::error_handling::ParsedType;
@@ -20,40 +19,94 @@ use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
 
-#[allow(unused)]
-pub(super) fn parse_polygon<'a>(
-    tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
-    tokens: &'a [Token],
-) -> Result<Polygon, Error<'a>> {
-    let slice_from_value_start = &tokens[tokens_iter
-        .peek()
-        .expect("BUG: 'tokens_iter' should have at least one token.")
-        .0..];
-    let mut state = Start;
+#[derive(Debug, PartialEq)]
+pub struct Polygon {
+    pub(super) position: Point,
+    pub(super) rotation: u8,
+    pub(super) width: i16,
+    pub(super) border_color: Color,
+    pub(super) fill_color: Color,
+    pub(super) vertices: Vec<Point>,
+    pub(super) children: Vec<Polygon>,
+}
 
-    loop {
-        state = match state.next_state(tokens_iter, tokens) {
-            Ok(state) => state,
-            Err(error) => return Err(error),
-        };
-        match state {
-            Return(mut value) => return Ok(value),
-            UnexpectedEnd(expected_tokens) => {
-                return Err(Parser(UnexpectedEnd {
-                    parsed_type: ParsedType::Polygon,
-                    current_value_slice: slice_from_value_start,
-                    expected_tokens,
-                }))
-            }
-            UnexpectedToken(expected_tokens, i) => {
-                return Err(Parser(UnexpectedToken {
-                    parsed_type: ParsedType::Polygon,
-                    current_value_slice: &slice_from_value_start[..i + 1],
-                    expected_tokens,
-                }))
-            }
-            _ => {}
+#[allow(unused)]
+impl Polygon {
+    pub(super) fn default() -> Self {
+        Polygon {
+            position: Point::default(),
+            rotation: 0,
+            width: 0,
+            border_color: Color::default(),
+            fill_color: Color::default(),
+            vertices: vec![],
+            children: vec![],
         }
+    }
+
+    #[allow(unused)]
+    pub(super) fn from_tokens<'a>(
+        tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
+        tokens: &'a [Token],
+    ) -> Result<Polygon, Error<'a>> {
+        let slice_from_value_start = &tokens[tokens_iter
+            .peek()
+            .expect("BUG: 'tokens_iter' should have at least one token.")
+            .0..];
+        let mut state = Start;
+
+        loop {
+            state = match state.next_state(tokens_iter, tokens) {
+                Ok(state) => state,
+                Err(error) => return Err(error),
+            };
+            match state {
+                Return(mut value) => return Ok(value),
+                UnexpectedEnd(expected_tokens) => {
+                    return Err(Parser(UnexpectedEnd {
+                        parsed_type: ParsedType::Polygon,
+                        current_value_slice: slice_from_value_start,
+                        expected_tokens,
+                    }))
+                }
+                UnexpectedToken(expected_tokens, i) => {
+                    return Err(Parser(UnexpectedToken {
+                        parsed_type: ParsedType::Polygon,
+                        current_value_slice: &slice_from_value_start[..i + 1],
+                        expected_tokens,
+                    }))
+                }
+                _ => {}
+            }
+        }
+    }
+
+    pub fn position(&self) -> &Point {
+        &self.position
+    }
+
+    pub fn rotation(&self) -> u8 {
+        self.rotation
+    }
+
+    pub fn width(&self) -> i16 {
+        self.width
+    }
+
+    pub fn border_color(&self) -> &Color {
+        &self.border_color
+    }
+
+    pub fn fill_color(&self) -> &Color {
+        &self.fill_color
+    }
+
+    pub fn vertices(&self) -> &[Point] {
+        self.vertices.as_ref()
+    }
+
+    pub fn children(&self) -> &[Polygon] {
+        self.children.as_ref()
     }
 }
 
@@ -99,7 +152,7 @@ impl State {
                 Rotation => {tokens_iter.next(); State::Rotation(Polygon::default())},
                 StructStart => {
                     let mut value = Polygon::default();
-                    value.position = match parse_point(tokens_iter, tokens) {
+                    value.position = match Point::from_token(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
@@ -138,7 +191,7 @@ impl State {
             State::BorderColor(mut value) => transition_peek!(tokens_iter,
                 FillColor => {tokens_iter.next(); State::FillColor(value)},
                 StructStart => {
-                    value.border_color = match parse_color(tokens_iter, tokens) {
+                    value.border_color = match Color::from_token(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
@@ -151,7 +204,7 @@ impl State {
             State::FillColor(mut value) => transition_peek!(tokens_iter,
                 Vertices => {tokens_iter.next(); State::Vertices(value)},
                 StructStart => {
-                    value.fill_color = match parse_color(tokens_iter, tokens) {
+                    value.fill_color = match Color::from_token(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     };
@@ -168,7 +221,7 @@ impl State {
             Vertex(mut value) => transition_peek!(tokens_iter,
                 ArrayEnd => {tokens_iter.next(); VerticesValue(value)},
                 StructStart => {
-                    value.vertices.push(match parse_point(tokens_iter, tokens) {
+                    value.vertices.push(match Point::from_token(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     });
@@ -185,7 +238,7 @@ impl State {
             Child(mut value) => transition_peek!(tokens_iter,
                 ArrayEnd => {tokens_iter.next(); ChildrenValue(value)},
                 StructStart => {
-                    value.children.push(match parse_polygon(tokens_iter, tokens) {
+                    value.children.push(match Polygon::from_tokens(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
                     });
@@ -195,9 +248,9 @@ impl State {
             ChildrenValue(value) => transition!(tokens_iter,
                 StructEnd => Return(value),
             ),
-            Return(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
-            UnexpectedEnd(_) => panic!("BUG: The `next_state` method should never be called on the `TokensUnexpectedEnd` state. 'state': '{self:?}'."),
-            UnexpectedToken(_, _) => panic!("BUG: The `next_state` method should never be called on the `UnexpectedToken` state. 'state': '{self:?}'."),
+            Return(_) => panic!("BUG: The 'next_state' method should never be called on the 'End' state. 'state': '{self:?}'."),
+            UnexpectedEnd(_) => panic!("BUG: The 'next_state' method should never be called on the 'TokensUnexpectedEnd' state. 'state': '{self:?}'."),
+            UnexpectedToken(_, _) => panic!("BUG: The 'next_state' method should never be called on the 'UnexpectedToken' state. 'state': '{self:?}'."),
         })
     }
 }
@@ -206,7 +259,6 @@ impl State {
 mod tests {
     use super::*;
     use crate::{
-        draw_elements::{self, Color, Point},
         error_handling::{
             ParsedType,
             ParserError::{UnexpectedEnd, UnexpectedToken},
@@ -228,7 +280,9 @@ mod tests {
             current_value_slice: &tokens,
             expected_tokens: vec![StructStart],
         });
-        if let Err(actual) = parse_polygon(&mut tokens.iter().enumerate().peekable(), &tokens) {
+        if let Err(actual) =
+            Polygon::from_tokens(&mut tokens.iter().enumerate().peekable(), &tokens)
+        {
             assert_eq!(expected, actual);
         } else {
             panic!("The parser succeeded when it shouldn't have.")
@@ -243,7 +297,9 @@ mod tests {
             current_value_slice: &tokens,
             expected_tokens: vec![Position],
         });
-        if let Err(actual) = parse_polygon(&mut tokens.iter().enumerate().peekable(), &tokens) {
+        if let Err(actual) =
+            Polygon::from_tokens(&mut tokens.iter().enumerate().peekable(), &tokens)
+        {
             assert_eq!(expected, actual);
         } else {
             panic!("The parser succeeded when it shouldn't have.")
@@ -263,8 +319,8 @@ mod tests {
             Token::default(Children),
             Token::default(StructEnd),
         ];
-        let expected = draw_elements::Polygon::default();
-        let actual = parse_polygon(&mut tokens.iter().enumerate().peekable(), &tokens)
+        let expected = Polygon::default();
+        let actual = Polygon::from_tokens(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);
@@ -332,7 +388,7 @@ mod tests {
             Token::default(ArrayEnd),
             Token::default(StructEnd),
         ];
-        let expected = draw_elements::Polygon {
+        let expected = Polygon {
             position: Point::default(),
             rotation: 1,
             width: 2,
@@ -341,7 +397,7 @@ mod tests {
             vertices: vec![Point::default(), Point::default()],
             children: vec![Polygon::default(), Polygon::default()],
         };
-        let actual = parse_polygon(&mut tokens.iter().enumerate().peekable(), &tokens)
+        let actual = Polygon::from_tokens(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);

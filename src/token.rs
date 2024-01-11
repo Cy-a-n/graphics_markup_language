@@ -30,6 +30,15 @@ impl Token {
         }
     }
 
+    pub fn new_from_end(line: usize, offset_end_exclusive: usize, value: Value) -> Self {
+        Token {
+            line,
+            offset_start_inclusive: offset_end_exclusive - value.len(),
+            offset_end_exclusive,
+            value,
+        }
+    }
+
     pub fn value(&self) -> &Value {
         &self.value
     }
@@ -87,30 +96,6 @@ pub enum Value {
 }
 
 impl Value {
-    const LENGTH_PRIMITIVE_VALUE: usize = 1;
-    const LENGTH_NEGATIVE_VALUE: usize = 1;
-    const LENGTH_POSITIVE_VALUE: usize = 1;
-    const LENGTH_ZERO: usize = 1;
-    const LENGTH_ONE: usize = 1;
-    const LENGTH_STRUCT_START: usize = 1;
-    const LENGTH_STRUCT_END: usize = 1;
-    const LENGTH_ARRAY_START: usize = 1;
-    const LENGTH_ARRAY_END: usize = 1;
-    const LENGTH_ATTRIBUT_RED: usize = 3;
-    const LENGTH_ATTRIBUT_GREEN: usize = 5;
-    const LENGTH_ATTRIBUT_BLUE: usize = 4;
-    const LENGTH_ATTRIBUTE_X: usize = 1;
-    const LENGTH_ATTRIBUTE_Y: usize = 1;
-    const LENGTH_ATTRIBUTE_POSITION: usize = 8;
-    const LENGTH_ATTRIBUTE_ROTATION: usize = 8;
-    const LENGTH_ATTRIBUTE_WIDTH: usize = 5;
-    const LENGTH_ATTRIBUTE_BORDER_COLOR: usize = 12;
-    const LENGTH_ATTRIBUTE_FILL_COLOR: usize = 10;
-    const LENGTH_ATTRIBUTE_VERTICES: usize = 8;
-    const LENGTH_ATTRIBUTE_VISIBLE_EXTENT: usize = 14;
-    const LENGTH_ATTRIBUTE_BACKGROUND_COLOR: usize = 16;
-    const LENGTH_ATTRIBUTE_SHAPES: usize = 6;
-
     const STR_PRIMITIVE_VALUE: &str = "=";
     const STR_NEGATIVE_VALUE: &str = "-";
     const STR_POSITIVE_VALUE: &str = "+";
@@ -136,31 +121,7 @@ impl Value {
     const STR_ATTRIBUTE_SHAPES: &str = "shapes";
 
     pub fn len(&self) -> usize {
-        match self {
-            Value::Equals => Self::LENGTH_PRIMITIVE_VALUE,
-            Value::NegativeSign => Self::LENGTH_NEGATIVE_VALUE,
-            Value::PositiveSign => Self::LENGTH_POSITIVE_VALUE,
-            Value::Zero => Self::LENGTH_ZERO,
-            Value::One => Self::LENGTH_ONE,
-            Value::StructStart => Self::LENGTH_STRUCT_START,
-            Value::StructEnd => Self::LENGTH_STRUCT_END,
-            Value::ArrayStart => Self::LENGTH_ARRAY_START,
-            Value::ArrayEnd => Self::LENGTH_ARRAY_END,
-            Value::Red => Self::LENGTH_ATTRIBUT_RED,
-            Value::Green => Self::LENGTH_ATTRIBUT_GREEN,
-            Value::Blue => Self::LENGTH_ATTRIBUT_BLUE,
-            Value::X => Self::LENGTH_ATTRIBUTE_X,
-            Value::Y => Self::LENGTH_ATTRIBUTE_Y,
-            Value::Position => Self::LENGTH_ATTRIBUTE_POSITION,
-            Value::Rotation => Self::LENGTH_ATTRIBUTE_ROTATION,
-            Value::Width => Self::LENGTH_ATTRIBUTE_WIDTH,
-            Value::BorderColor => Self::LENGTH_ATTRIBUTE_BORDER_COLOR,
-            Value::FillColor => Self::LENGTH_ATTRIBUTE_FILL_COLOR,
-            Value::Vertices => Self::LENGTH_ATTRIBUTE_VERTICES,
-            Value::VisibleExtent => Self::LENGTH_ATTRIBUTE_VISIBLE_EXTENT,
-            Value::BackgroundColor => Self::LENGTH_ATTRIBUTE_BACKGROUND_COLOR,
-            Value::Children => Self::LENGTH_ATTRIBUTE_SHAPES,
-        }
+        self.to_str().len()
     }
 
     pub fn to_str(&self) -> &str {

@@ -2,7 +2,6 @@ use self::State::*;
 use super::i16::parse_i16;
 use super::macros::transition;
 use super::macros::transition_peek;
-use crate::draw_elements::Point;
 use crate::error_handling::Error;
 use crate::error_handling::Error::Parser;
 use crate::error_handling::ParsedType;
@@ -15,40 +14,61 @@ use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
 
-#[allow(unused)]
-pub(super) fn parse_point<'a>(
-    tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
-    tokens: &'a [Token],
-) -> Result<Point, Error<'a>> {
-    let slice_from_value_start = &tokens[tokens_iter
-        .peek()
-        .expect("BUG: 'tokens_iter' should have at least one token.")
-        .0..];
-    let mut state = Start;
+#[derive(Debug, PartialEq)]
+pub struct Point {
+    pub(super) x: i16,
+    pub(super) y: i16,
+}
 
-    loop {
-        state = match state.next_state(tokens_iter, tokens) {
-            Ok(state) => state,
-            Err(error) => return Err(error),
-        };
-        match state {
-            Return(value) => return Ok(value),
-            UnexpectedEnd(expected_tokens) => {
-                return Err(Parser(UnexpectedEnd {
-                    parsed_type: ParsedType::Point,
-                    current_value_slice: slice_from_value_start,
-                    expected_tokens,
-                }))
+#[allow(unused)]
+impl Point {
+    pub(super) fn default() -> Self {
+        Self { x: 0, y: 0 }
+    }
+
+    #[allow(unused)]
+    pub(super) fn from_token<'a>(
+        tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
+        tokens: &'a [Token],
+    ) -> Result<Point, Error<'a>> {
+        let slice_from_value_start = &tokens[tokens_iter
+            .peek()
+            .expect("BUG: 'tokens_iter' should have at least one token.")
+            .0..];
+        let mut state = Start;
+
+        loop {
+            state = match state.next_state(tokens_iter, tokens) {
+                Ok(state) => state,
+                Err(error) => return Err(error),
+            };
+            match state {
+                Return(value) => return Ok(value),
+                UnexpectedEnd(expected_tokens) => {
+                    return Err(Parser(UnexpectedEnd {
+                        parsed_type: ParsedType::Point,
+                        current_value_slice: slice_from_value_start,
+                        expected_tokens,
+                    }))
+                }
+                UnexpectedToken(expected_tokens, i) => {
+                    return Err(Parser(UnexpectedToken {
+                        parsed_type: ParsedType::Point,
+                        current_value_slice: &slice_from_value_start[..i + 1],
+                        expected_tokens,
+                    }))
+                }
+                _ => {}
             }
-            UnexpectedToken(expected_tokens, i) => {
-                return Err(Parser(UnexpectedToken {
-                    parsed_type: ParsedType::Point,
-                    current_value_slice: &slice_from_value_start[..i + 1],
-                    expected_tokens,
-                }))
-            }
-            _ => {}
         }
+    }
+
+    pub fn x(&self) -> i16 {
+        self.x
+    }
+
+    pub fn y(&self) -> i16 {
+        self.y
     }
 }
 
@@ -105,20 +125,20 @@ impl State {
             YValue(value) => transition!(tokens_iter,
                 StructEnd => Return(value),
             ),
-            Return(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
-            UnexpectedEnd(_) => panic!("BUG: The `next_state` method should never be called on the `TokensUnexpectedEnd` state. 'state': '{self:?}'."),
-            UnexpectedToken(_, _) => panic!("BUG: The `next_state` method should never be called on the `UnexpectedToken` state. 'state': '{self:?}'."),
+            Return(_) => panic!("BUG: The 'next_state' method should never be called on the 'End' state. 'state': '{self:?}'."),
+            UnexpectedEnd(_) => panic!("BUG: The 'next_state' method should never be called on the 'TokensUnexpectedEnd' state. 'state': '{self:?}'."),
+            UnexpectedToken(_, _) => panic!("BUG: The 'next_state' method should never be called on the 'UnexpectedToken' state. 'state': '{self:?}'."),
         })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::Point;
     use crate::{
-        draw_elements,
         error_handling::{
-            ParsedType::Point,
+            Error::Parser,
+            ParsedType,
             ParserError::{UnexpectedEnd, UnexpectedToken},
         },
         token::{
@@ -131,11 +151,11 @@ mod tests {
     fn unexpected_token() {
         let tokens = vec![Token::default(Equals)];
         let expected = Parser(UnexpectedToken {
-            parsed_type: Point,
+            parsed_type: ParsedType::Point,
             current_value_slice: &tokens,
             expected_tokens: vec![StructStart],
         });
-        if let Err(actual) = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens) {
+        if let Err(actual) = Point::from_token(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
         } else {
             panic!("The parser succeeded when it shouldn't have.")
@@ -145,12 +165,12 @@ mod tests {
     #[test]
     fn tokens_unexpected_end() {
         let tokens = vec![Token::default(StructStart)];
-        let expected = Error::Parser(UnexpectedEnd {
-            parsed_type: Point,
+        let expected = Parser(UnexpectedEnd {
+            parsed_type: ParsedType::Point,
             current_value_slice: &tokens,
             expected_tokens: vec![X],
         });
-        if let Err(actual) = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens) {
+        if let Err(actual) = Point::from_token(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
         } else {
             panic!("The parser succeeded when it shouldn't have.")
@@ -165,8 +185,8 @@ mod tests {
             Token::default(Y),
             Token::default(StructEnd),
         ];
-        let expected = draw_elements::Point::default();
-        let actual = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens)
+        let expected = Point::default();
+        let actual = Point::from_token(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);
@@ -185,8 +205,8 @@ mod tests {
             Token::default(Zero),
             Token::default(StructEnd),
         ];
-        let expected = draw_elements::Point { x: 1, y: 2 };
-        let actual = parse_point(&mut tokens.iter().enumerate().peekable(), &tokens)
+        let expected = Point { x: 1, y: 2 };
+        let actual = Point::from_token(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);

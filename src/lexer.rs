@@ -18,7 +18,7 @@ pub fn to_tokens(source_code: &str) -> Result<Vec<Token>, Error> {
     let mut output: Vec<Token> = vec![];
     let mut current_state = Start;
     for (line_number, line_content) in source_code.lines().enumerate() {
-        for (offset, char) in source_code.chars().enumerate() {
+        for (offset, char) in line_content.chars().enumerate() {
             let (next_state, value) = current_state.next_state(char);
 
             if let UnexpectedChar(expected_chars) = next_state {
@@ -31,7 +31,7 @@ pub fn to_tokens(source_code: &str) -> Result<Vec<Token>, Error> {
                 });
             }
             if let Some(value) = value {
-                output.push(Token::new(line_number, offset, value));
+                output.push(Token::new_from_end(line_number, offset + 1, value));
             }
 
             current_state = next_state;
@@ -367,7 +367,7 @@ impl State {
                 'n' => (Start, Some(Children)),
             ),
             UnexpectedChar(_) => {
-                panic!("BUG: The `next_state` method should never be called on the `Err` state.")
+                panic!("BUG: The 'next_state' method should never be called on the 'Err' state.")
             }
         }
     }
@@ -391,7 +391,7 @@ mod tests {
         expected_tokens: &Vec<Value>,
     ) -> Result<(), String> {
         Result::Err(format!(
-            "`actual_tokens_iter` ended before `expected_tokens_iter`.\n`expected_token`: `{:?}`,\n`index`: {},\n`actual_tokens`: `{:?}`,\n`expected_tokens`: `{:?}`.",
+            "'actual_tokens_iter' ended before 'expected_tokens_iter'.\n'expected_token': '{:?}',\n'index': {},\n'actual_tokens': '{:?}',\n'expected_tokens': '{:?}'.",
             expected_token,
             index,
             actual_tokens,
@@ -406,7 +406,7 @@ mod tests {
         expected_tokens: &Vec<Value>,
     ) -> Result<(), String> {
         Result::Err(format!(
-            "`expected_tokens_iter` ended before `actual_tokens_iter`.\n`actual_token`: `{:?}`,\n`index`: {},\n`actual_tokens`: `{:?}`,\n`expected_tokens`: `{:?}`.",
+            "'expected_tokens_iter' ended before 'actual_tokens_iter'.\n'actual_token': '{:?}',\n'index': {},\n'actual_tokens': '{:?}',\n'expected_tokens': '{:?}'.",
             &actual_token,
             index,
             actual_tokens,
@@ -421,7 +421,7 @@ mod tests {
         actual_tokens: &Vec<Token>,
         expected_tokens: &Vec<Value>,
     ) -> Result<(), String> {
-        Result::Err(format!("`actual_token` does not equal `current_token`.\n `actual_token`: `{:?}`, `expected_token`: `{:?}`,\n`index`: {},\n`actual_tokens`: `{:?}`,\n`expected_tokens`: `{:?}`.", actual_token, expected_token,
+        Result::Err(format!("'actual_token' does not equal 'current_token'.\n 'actual_token': '{:?}', 'expected_token': '{:?}',\n'index': {},\n'actual_tokens': '{:?}',\n'expected_tokens': '{:?}'.", actual_token, expected_token,
         index,
         actual_tokens,
         expected_tokens))
@@ -506,7 +506,7 @@ mod tests {
     fn test_invalid_token() -> Result<(), String> {
         let result = to_tokens("invalid");
         match result {
-            Ok(_) => Result::Err("`to_tokens` should return an error.".to_string()),
+            Ok(_) => Result::Err("'to_tokens' should return an error.".to_string()),
             Result::Err(_) => Ok(()),
         }
     }

@@ -2,7 +2,6 @@ use self::State::*;
 use super::macros::transition;
 use super::macros::transition_peek;
 use super::u8::parse_u8;
-use crate::draw_elements::Color;
 use crate::error_handling::Error;
 use crate::error_handling::Error::Parser;
 use crate::error_handling::ParsedType;
@@ -17,42 +16,75 @@ use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
 
-#[allow(unused)]
-pub(super) fn parse_color<'a>(
-    tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
-    tokens: &'a [Token],
-) -> Result<Color, Error<'a>> {
-    let slice_from_value_start = &tokens[tokens_iter
-        .peek()
-        .expect("BUG: 'tokens_iter' should have at least one token.")
-        .0..];
-    let mut state = Start;
+#[derive(Debug, PartialEq)]
+pub struct Color {
+    pub(super) red: u8,
+    pub(super) green: u8,
+    pub(super) blue: u8,
+}
 
-    loop {
-        state = match state.next_state(tokens_iter, tokens) {
-            Ok(state) => state,
-            Err(error) => return Err(error),
-        };
-        match state {
-            Return(value) => return Ok(value),
-            UnexpectedEnd(expected_tokens) => {
-                return Err(Parser(UnexpectedEnd {
-                    parsed_type: ParsedType::Color,
-                    current_value_slice: slice_from_value_start,
-                    expected_tokens,
-                }))
-            }
-            UnexpectedToken(expected_tokens, i) => {
-                return Err(Parser(UnexpectedToken {
-                    parsed_type: ParsedType::Color,
-                    current_value_slice: &slice_from_value_start[..i + 1],
-                    expected_tokens,
-                }))
-            }
-            _ => {}
+#[allow(unused)]
+impl Color {
+    pub (super) fn default() -> Self {
+        Self {
+            red: 0,
+            green: 0,
+            blue: 0,
         }
     }
+
+    #[allow(unused)]
+    pub(super) fn from_token<'a>(
+        tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
+        tokens: &'a [Token],
+    ) -> Result<Self, Error<'a>> {
+        let slice_from_value_start = &tokens[tokens_iter
+            .peek()
+            .expect("BUG: 'tokens_iter' should have at least one token.")
+            .0..];
+        let mut state = Start;
+
+        loop {
+            state = match state.next_state(tokens_iter, tokens) {
+                Ok(state) => state,
+                Err(error) => return Err(error),
+            };
+            match state {
+                Return(value) => return Ok(value),
+                UnexpectedEnd(expected_tokens) => {
+                    return Err(Parser(UnexpectedEnd {
+                        parsed_type: ParsedType::Color,
+                        current_value_slice: slice_from_value_start,
+                        expected_tokens,
+                    }))
+                }
+                UnexpectedToken(expected_tokens, i) => {
+                    return Err(Parser(UnexpectedToken {
+                        parsed_type: ParsedType::Color,
+                        current_value_slice: &slice_from_value_start[..i + 1],
+                        expected_tokens,
+                    }))
+                }
+                _ => {}
+            }
+        }
+    }
+
+
+
+    pub fn red(&self) -> u8 {
+        self.red
+    }
+
+    pub fn green(&self) -> u8 {
+        self.green
+    }
+
+    pub fn blue(&self) -> u8 {
+        self.blue
+    }
 }
+
 
 #[derive(Debug)]
 enum State {
@@ -122,9 +154,9 @@ impl State {
             BlueValue(value) => transition!(tokens_iter,
                 StructEnd => Return(value),
             ),
-            Return(_) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
-            UnexpectedEnd(_) => panic!("BUG: The `next_state` method should never be called on the `TokensUnexpectedEnd` state. 'state': '{self:?}'."),
-            UnexpectedToken(_, _) => panic!("BUG: The `next_state` method should never be called on the `UnexpectedToken` state. 'state': '{self:?}'."),
+            Return(_) => panic!("BUG: The 'next_state' method should never be called on the 'End' state. 'state': '{self:?}'."),
+            UnexpectedEnd(_) => panic!("BUG: The 'next_state' method should never be called on the 'TokensUnexpectedEnd' state. 'state': '{self:?}'."),
+            UnexpectedToken(_, _) => panic!("BUG: The 'next_state' method should never be called on the 'UnexpectedToken' state. 'state': '{self:?}'."),
         })
     }
 }
@@ -132,10 +164,10 @@ impl State {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::Color;
     use crate::{
-        draw_elements,
         error_handling::{
-            ParsedType::Color,
+            ParsedType,
             ParserError::{UnexpectedEnd, UnexpectedToken},
         },
         token::{
@@ -148,11 +180,11 @@ mod tests {
     fn unexpected_token() {
         let tokens = vec![Token::default(Equals)];
         let expected = Parser(UnexpectedToken {
-            parsed_type: Color,
+            parsed_type: ParsedType::Color,
             current_value_slice: &tokens,
             expected_tokens: vec![StructStart],
         });
-        if let Err(actual) = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens) {
+        if let Err(actual) = Color::from_token(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
         } else {
             panic!("The parser succeeded when it shouldn't have.")
@@ -163,11 +195,11 @@ mod tests {
     fn tokens_unexpected_end() {
         let tokens = vec![Token::default(StructStart)];
         let expected = Error::Parser(UnexpectedEnd {
-            parsed_type: Color,
+            parsed_type: ParsedType::Color,
             current_value_slice: &tokens,
             expected_tokens: vec![Red],
         });
-        if let Err(actual) = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens) {
+        if let Err(actual) = Color::from_token(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
         } else {
             panic!("The parser succeeded when it shouldn't have.")
@@ -183,8 +215,8 @@ mod tests {
             Token::default(Blue),
             Token::default(StructEnd),
         ];
-        let expected = draw_elements::Color::default();
-        let actual = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens)
+        let expected = Color::default();
+        let actual = Color::from_token(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);
@@ -208,8 +240,8 @@ mod tests {
             Token::default(Zero),
             Token::default(StructEnd),
         ];
-        let expected = draw_elements::Color { red: 1, green: 2, blue: 4 };
-        let actual = parse_color(&mut tokens.iter().enumerate().peekable(), &tokens)
+        let expected = Color { red: 1, green: 2, blue: 4 };
+        let actual = Color::from_token(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);

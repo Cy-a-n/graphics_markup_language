@@ -145,9 +145,9 @@ impl State {
                 Zero => Return((value << 1, negative)),
                 One => Return(((value << 1) + 1, negative)),
             ),
-            Return((_, _)) => panic!("BUG: The `next_state` method should never be called on the `End` state. 'state': '{self:?}'."),
-            UnexpectedEnd(_) => panic!("BUG: The `next_state` method should never be called on the `TokensUnexpectedEnd` state. 'state': '{self:?}'."),
-            UnexpectedToken(_, _) => panic!("BUG: The `next_state` method should never be called on the `UnexpectedToken` state. 'state': '{self:?}'."),
+            Return((_, _)) => panic!("BUG: The 'next_state' method should never be called on the 'End' state. 'state': '{self:?}'."),
+            UnexpectedEnd(_) => panic!("BUG: The 'next_state' method should never be called on the 'TokensUnexpectedEnd' state. 'state': '{self:?}'."),
+            UnexpectedToken(_, _) => panic!("BUG: The 'next_state' method should never be called on the 'UnexpectedToken' state. 'state': '{self:?}'."),
         }
     }
 }
