@@ -7,7 +7,7 @@ use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
-use crate::token::Value::{Equals, NegativeSign, One, PositiveSign, Zero};
+use crate::token::Value::{Equals, Minus, One, Plus, Zero};
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
@@ -80,8 +80,8 @@ impl State {
                 Equals => EqualsSign
             ),
             EqualsSign => transition!(tokens_iter,
-                PositiveSign => Sign(false),
-                NegativeSign => Sign(true),
+                Minus => Sign(false),
+                Plus => Sign(true),
                 Zero => Digit0((0, false)),
                 One => Digit0((1, false)),
             ),
@@ -157,7 +157,7 @@ mod tests {
     use super::*;
     use crate::{
         error_handling::ParserError::{UnexpectedEnd, UnexpectedToken},
-        token::Value::StructEnd,
+        token::Value::RightBrace,
     };
 
     #[test]
@@ -178,7 +178,7 @@ mod tests {
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = 0;
         let actual = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -193,7 +193,7 @@ mod tests {
     fn positive_0_full() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(PositiveSign),
+            Token::default(Minus),
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
@@ -209,7 +209,7 @@ mod tests {
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = 0;
         let actual = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -224,7 +224,7 @@ mod tests {
     fn negative_0_full() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(NegativeSign),
+            Token::default(Plus),
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
@@ -240,7 +240,7 @@ mod tests {
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = 0;
         let actual = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -270,7 +270,7 @@ mod tests {
             Token::default(One),
             Token::default(One),
             Token::default(One),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = i16::MAX;
         let actual = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -283,7 +283,7 @@ mod tests {
     fn positive_max() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(PositiveSign),
+            Token::default(Minus),
             Token::default(One),
             Token::default(One),
             Token::default(One),
@@ -299,7 +299,7 @@ mod tests {
             Token::default(One),
             Token::default(One),
             Token::default(One),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = i16::MAX;
         let actual = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -312,7 +312,7 @@ mod tests {
     fn negative_max() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(NegativeSign),
+            Token::default(Plus),
             Token::default(One),
             Token::default(One),
             Token::default(One),
@@ -328,7 +328,7 @@ mod tests {
             Token::default(One),
             Token::default(One),
             Token::default(One),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = i16::MIN + 1;
         let actual = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -341,7 +341,7 @@ mod tests {
     fn random_partial() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(NegativeSign),
+            Token::default(Plus),
             Token::default(One),
             Token::default(One),
             Token::default(One),
@@ -350,7 +350,7 @@ mod tests {
             Token::default(One),
             Token::default(One),
             Token::default(One),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = -0b11111111;
         let actual = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -363,14 +363,14 @@ mod tests {
     fn random_partial_1() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(PositiveSign),
+            Token::default(Minus),
             Token::default(Zero),
             Token::default(One),
             Token::default(One),
             Token::default(Zero),
             Token::default(One),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = 0b011010;
         let actual = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -381,11 +381,11 @@ mod tests {
 
     #[test]
     fn unexpected_token() {
-        let tokens = vec![Token::default(Equals), Token::new(0, 1, StructEnd)];
+        let tokens = vec![Token::default(Equals), Token::new(0, 1, RightBrace)];
         let expected = Parser(UnexpectedToken {
             parsed_type: U8,
             current_value_slice: &tokens,
-            expected_tokens: vec![PositiveSign, NegativeSign, Zero, One],
+            expected_tokens: vec![Minus, Plus, Zero, One],
         });
         if let Err(actual) = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
@@ -400,7 +400,7 @@ mod tests {
         let expected = Error::Parser(UnexpectedEnd {
             parsed_type: U8,
             current_value_slice: &tokens,
-            expected_tokens: vec![PositiveSign, NegativeSign, Zero, One],
+            expected_tokens: vec![Minus, Plus, Zero, One],
         });
         if let Err(actual) = parse_i16(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);

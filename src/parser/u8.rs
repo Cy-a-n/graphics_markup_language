@@ -8,6 +8,7 @@ use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
 use crate::token::Value::{Equals,One, Zero};
+use std::f32::consts::PI;
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
@@ -26,6 +27,10 @@ pub(super) fn parse_u8<'a>(tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>, t
             _ => {},
         }
     }
+}
+
+pub(super) fn to_angle_rad(value: u8) -> f32 {
+    value as f32 / 128.0 * PI
 }
 
 #[derive(Debug)]
@@ -92,7 +97,7 @@ impl State {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{token::Value::{One, StructEnd, Zero}, error_handling::ParserError::{UnexpectedToken, UnexpectedEnd}};
+    use crate::{token::Value::{One, RightBrace, Zero}, error_handling::ParserError::{UnexpectedToken, UnexpectedEnd}};
 
     #[test]
     fn parse_u8_0_full() {
@@ -106,7 +111,7 @@ mod tests {
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = 0;
         let actual = parse_u8(&mut tokens.iter().enumerate().peekable(), &tokens).expect("The parser failed.");
@@ -127,7 +132,7 @@ mod tests {
             Token::default(One),
             Token::default(One),
             Token::default(One),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = 0b11111111;
         let actual = parse_u8(&mut tokens.iter().enumerate().peekable(), &tokens).expect("The parser failed.");
@@ -144,7 +149,7 @@ mod tests {
             Token::default(Zero),
             Token::default(One),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = 0b01010;
         let actual = parse_u8(&mut tokens.iter().enumerate().peekable(), &tokens).expect("The parser failed.");
@@ -162,7 +167,7 @@ mod tests {
             Token::default(Zero),
             Token::default(One),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = 0b011010;
         let actual = parse_u8(&mut tokens.iter().enumerate().peekable(), &tokens).expect("The parser failed.");
@@ -174,7 +179,7 @@ mod tests {
     fn unexpected_token() {
         let tokens = vec![
             Token::default(Equals),
-            Token::new(0, 1, StructEnd),
+            Token::new(0, 1, RightBrace),
         ];
         let expected = Parser(UnexpectedToken { parsed_type: U8, current_value_slice: &tokens, expected_tokens: vec![Zero, One]});
         if let Err(actual) = parse_u8(&mut tokens.iter().enumerate().peekable(), &tokens) {

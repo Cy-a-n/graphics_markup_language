@@ -1,14 +1,20 @@
 use crate::{error_handling::Error, token::Token};
 
+use polygon::Polygon;
+
+use self::simple_polygon::SimplePolygon;
+
 mod color;
 mod i16;
 mod macros;
 mod point;
 mod polygon;
+mod simple_polygon;
 mod u8;
 
-pub use {color::Color, point::Point, polygon::Polygon};
-
-pub fn parse(tokens: &mut [Token]) -> Result<Polygon, Error> {
-    polygon::Polygon::from_tokens(&mut tokens.iter().enumerate().peekable(), tokens)
+pub fn parse(tokens: &mut [Token]) -> Result<Vec<SimplePolygon>, Error> {
+    match Polygon::from_tokens(&mut tokens.iter().enumerate().peekable(), tokens) {
+        Ok(root_polygon) => Ok(simple_polygon::simplify(root_polygon)),
+        Err(error) => Err(error),
+    }
 }

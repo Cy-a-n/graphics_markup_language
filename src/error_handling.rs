@@ -228,14 +228,14 @@ mod tests {
     #[test]
     fn test_source_code_with_error() {
         let tokens = vec![
-            Token::new(0, 0, StructStart),
+            Token::new(0, 0, LeftBrace),
             Token::new(1, 4, VisibleExtent),
             Token::new(2, 4, BackgroundColor),
             Token::new(3, 4, Children),
-            Token::new(4, 0, StructEnd),
+            Token::new(4, 0, RightBrace),
         ];
         let error_token = tokens[0].clone();
-        let expected = "\u{1b}[33m0\u{1b}[0m       {\n\u{1b}[33m0\u{1b}[0m       \u{1b}[31m^ There is no error\u{1b}[0m\n\u{1b}[33m1\u{1b}[0m           visible_extent\n\u{1b}[33m2\u{1b}[0m           background_color\n\u{1b}[33m3\u{1b}[0m           shapes\n\u{1b}[33m4\u{1b}[0m       }";
+        let expected = "\u{1b}[33m0\u{1b}[0m       {\n\u{1b}[33m0\u{1b}[0m       \u{1b}[31m^ There is no error\u{1b}[0m\n\u{1b}[33m1\u{1b}[0m           visible_extent\n\u{1b}[33m2\u{1b}[0m           background_color\n\u{1b}[33m3\u{1b}[0m           children\n\u{1b}[33m4\u{1b}[0m       }";
         let actual = source_code_with_error(&tokens, &error_token, "There is no error");
 
         assert_eq!(actual, expected);
@@ -244,11 +244,11 @@ mod tests {
     #[test]
     fn test_source_code_with_error_1() {
         let tokens = vec![
-            Token::new(4, 3, StructStart),
+            Token::new(4, 3, LeftBrace),
             Token::new(4, 5, Red),
             Token::new(4, 9, Green),
             Token::new(4, 15, Blue),
-            Token::new(4, 20, StructEnd),
+            Token::new(4, 20, RightBrace),
         ];
         let error_token = tokens[2].clone();
         let expected = "\u{1b}[33m4\u{1b}[0m          { red green blue }\n\u{1b}[33m4\u{1b}[0m       \u{1b}[31m         ^^^^^ There is no error\u{1b}[0m"        ;

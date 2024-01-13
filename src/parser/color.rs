@@ -10,7 +10,7 @@ use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
 use crate::token::Value::{
-    Blue, Green, Red, Equals, StructEnd, StructStart,
+    Blue, Green, Red, Equals, RightBrace, LeftBrace,
 };
 use std::iter::Enumerate;
 use std::str::FromStr;
@@ -18,14 +18,14 @@ use std::{iter::Peekable, slice::Iter};
 
 #[derive(Debug, PartialEq)]
 pub struct Color {
-    pub(super) red: u8,
-    pub(super) green: u8,
-    pub(super) blue: u8,
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
 }
 
 #[allow(unused)]
 impl Color {
-    pub (super) fn default() -> Self {
+    pub(super) fn default() -> Self {
         Self {
             red: 0,
             green: 0,
@@ -69,20 +69,6 @@ impl Color {
             }
         }
     }
-
-
-
-    pub fn red(&self) -> u8 {
-        self.red
-    }
-
-    pub fn green(&self) -> u8 {
-        self.green
-    }
-
-    pub fn blue(&self) -> u8 {
-        self.blue
-    }
 }
 
 
@@ -109,7 +95,7 @@ impl State {
     ) -> Result<Self, Error<'a>> {
         Ok(match self {
             Start => transition!(tokens_iter,
-                StructStart => State::StructStart,
+                LeftBrace => State::StructStart,
             ),
             State::StructStart => transition!(tokens_iter,
                 Red => State::Red,
@@ -142,7 +128,7 @@ impl State {
                 Blue => State::Blue(value),
             ),
             State::Blue(mut value) => transition_peek!(tokens_iter,
-                StructEnd => {tokens_iter.next(); Return(value)},
+                RightBrace => {tokens_iter.next(); Return(value)},
                 Equals => {
                     value.blue = match parse_u8(tokens_iter, tokens) {
                         Ok(value) => value,
@@ -152,7 +138,7 @@ impl State {
                 },                
             ),
             BlueValue(value) => transition!(tokens_iter,
-                StructEnd => Return(value),
+                RightBrace => Return(value),
             ),
             Return(_) => panic!("BUG: The 'next_state' method should never be called on the 'End' state. 'state': '{self:?}'."),
             UnexpectedEnd(_) => panic!("BUG: The 'next_state' method should never be called on the 'TokensUnexpectedEnd' state. 'state': '{self:?}'."),
@@ -172,7 +158,7 @@ mod tests {
         },
         token::{
             Token,
-            Value::{ Equals, One, StructEnd, StructStart, Zero},
+            Value::{ Equals, One, RightBrace, LeftBrace, Zero},
         },
     };
 
@@ -182,7 +168,7 @@ mod tests {
         let expected = Parser(UnexpectedToken {
             parsed_type: ParsedType::Color,
             current_value_slice: &tokens,
-            expected_tokens: vec![StructStart],
+            expected_tokens: vec![LeftBrace],
         });
         if let Err(actual) = Color::from_token(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
@@ -193,7 +179,7 @@ mod tests {
 
     #[test]
     fn tokens_unexpected_end() {
-        let tokens = vec![Token::default(StructStart)];
+        let tokens = vec![Token::default(LeftBrace)];
         let expected = Error::Parser(UnexpectedEnd {
             parsed_type: ParsedType::Color,
             current_value_slice: &tokens,
@@ -209,11 +195,11 @@ mod tests {
     #[test]
     fn minimum() {
         let tokens = vec![
-            Token::default(StructStart),
+            Token::default(LeftBrace),
             Token::default(Red),
             Token::default(Green),
             Token::default(Blue),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = Color::default();
         let actual = Color::from_token(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -225,7 +211,7 @@ mod tests {
     #[test]
     fn maximum() {
         let tokens = vec![
-            Token::default(StructStart),
+            Token::default(LeftBrace),
             Token::default(Red),
             Token::default(Equals),
             Token::default(One),
@@ -238,7 +224,7 @@ mod tests {
             Token::default(One),
             Token::default(Zero),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = Color { red: 1, green: 2, blue: 4 };
         let actual = Color::from_token(&mut tokens.iter().enumerate().peekable(), &tokens)

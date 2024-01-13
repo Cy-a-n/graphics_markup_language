@@ -1,6 +1,6 @@
 use std::fmt::{Formatter, Result};
 
-use strum_macros::EnumString;
+use strum_macros::{Display, EnumString};
 
 #[derive(PartialEq, Clone)]
 pub struct Token {
@@ -21,6 +21,7 @@ impl Token {
         }
     }
 
+    #[cfg(test)]
     pub fn new(line: usize, offset_start_inclusive: usize, value: Value) -> Self {
         Token {
             line,
@@ -67,94 +68,58 @@ impl std::fmt::Debug for Token {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, EnumString)]
-
+#[derive(Debug, PartialEq, Clone, EnumString, Display)]
 pub enum Value {
+    #[strum(to_string = "=", serialize = "Equals")]
     Equals,
-    NegativeSign,
-    PositiveSign,
+    #[strum(to_string = "-", serialize = "Minus")]
+    Minus,
+    #[strum(to_string = "+", serialize = "Plus")]
+    Plus,
+    #[strum(to_string = "0", serialize = "Zero")]
     Zero,
+    #[strum(to_string = "1", serialize = "One")]
     One,
-    StructStart,
-    StructEnd,
-    ArrayStart,
-    ArrayEnd,
+    #[strum(to_string = "{", serialize = "LeftBrace")]
+    LeftBrace,
+    #[strum(to_string = "}", serialize = "RightBrace")]
+    RightBrace,
+    #[strum(to_string = "[", serialize = "LeftBracket")]
+    LeftBracket,
+    #[strum(to_string = "]", serialize = "RightBracket")]
+    RightBracket,
+    #[strum(to_string = "red", serialize = "Red")]
     Red,
+    #[strum(to_string = "green", serialize = "Green")]
     Green,
+    #[strum(to_string = "blue", serialize = "Blue")]
     Blue,
+    #[strum(to_string = "x", serialize = "X")]
     X,
+    #[strum(to_string = "y", serialize = "Y")]
     Y,
+    #[strum(to_string = "position", serialize = "Position")]
     Position,
+    #[strum(to_string = "rotation", serialize = "Rotation")]
     Rotation,
+    #[strum(to_string = "width", serialize = "Width")]
     Width,
+    #[strum(to_string = "border_color", serialize = "BorderColor")]
     BorderColor,
+    #[strum(to_string = "fill_color", serialize = "FillColor")]
     FillColor,
+    #[strum(to_string = "vertices", serialize = "Vertices")]
     Vertices,
+    #[strum(to_string = "visible_extent", serialize = "VisibleExtent")]
     VisibleExtent,
+    #[strum(to_string = "background_color", serialize = "BackgroundColor")]
     BackgroundColor,
+    #[strum(to_string = "children", serialize = "Children")]
     Children,
 }
 
 impl Value {
-    const STR_PRIMITIVE_VALUE: &str = "=";
-    const STR_NEGATIVE_VALUE: &str = "-";
-    const STR_POSITIVE_VALUE: &str = "+";
-    const STR_ZERO: &str = "0";
-    const STR_ONE: &str = "1";
-    const STR_STRUCT_START: &str = "{";
-    const STR_STRUCT_END: &str = "}";
-    const STR_ARRAY_START: &str = "[";
-    const STR_ARRAY_END: &str = "]";
-    const STR_ATTRIBUT_RED: &str = "red";
-    const STR_ATTRIBUT_GREEN: &str = "green";
-    const STR_ATTRIBUT_BLUE: &str = "blue";
-    const STR_ATTRIBUTE_X: &str = "x";
-    const STR_ATTRIBUTE_Y: &str = "y";
-    const STR_ATTRIBUTE_POSITION: &str = "position";
-    const STR_ATTRIBUTE_ROTATION: &str = "rotation";
-    const STR_ATTRIBUTE_WIDTH: &str = "width";
-    const STR_ATTRIBUTE_BORDER_COLOR: &str = "border_color";
-    const STR_ATTRIBUTE_FILL_COLOR: &str = "fill_color";
-    const STR_ATTRIBUTE_VERTICES: &str = "vertices";
-    const STR_ATTRIBUTE_VISIBLE_EXTENT: &str = "visible_extent";
-    const STR_ATTRIBUTE_BACKGROUND_COLOR: &str = "background_color";
-    const STR_ATTRIBUTE_SHAPES: &str = "shapes";
-
     pub fn len(&self) -> usize {
-        self.to_str().len()
-    }
-
-    pub fn to_str(&self) -> &str {
-        match self {
-            Value::Equals => Self::STR_PRIMITIVE_VALUE,
-            Value::NegativeSign => Self::STR_NEGATIVE_VALUE,
-            Value::PositiveSign => Self::STR_POSITIVE_VALUE,
-            Value::Zero => Self::STR_ZERO,
-            Value::One => Self::STR_ONE,
-            Value::StructStart => Self::STR_STRUCT_START,
-            Value::StructEnd => Self::STR_STRUCT_END,
-            Value::ArrayStart => Self::STR_ARRAY_START,
-            Value::ArrayEnd => Self::STR_ARRAY_END,
-            Value::Red => Self::STR_ATTRIBUT_RED,
-            Value::Green => Self::STR_ATTRIBUT_GREEN,
-            Value::Blue => Self::STR_ATTRIBUT_BLUE,
-            Value::X => Self::STR_ATTRIBUTE_X,
-            Value::Y => Self::STR_ATTRIBUTE_Y,
-            Value::Position => Self::STR_ATTRIBUTE_POSITION,
-            Value::Rotation => Self::STR_ATTRIBUTE_ROTATION,
-            Value::Width => Self::STR_ATTRIBUTE_WIDTH,
-            Value::BorderColor => Self::STR_ATTRIBUTE_BORDER_COLOR,
-            Value::FillColor => Self::STR_ATTRIBUTE_FILL_COLOR,
-            Value::Vertices => Self::STR_ATTRIBUTE_VERTICES,
-            Value::VisibleExtent => Self::STR_ATTRIBUTE_VISIBLE_EXTENT,
-            Value::BackgroundColor => Self::STR_ATTRIBUTE_BACKGROUND_COLOR,
-            Value::Children => Self::STR_ATTRIBUTE_SHAPES,
-        }
-    }
-}
-
-impl std::fmt::Display for Value {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}", self.to_str())
+        self.to_string().len()
     }
 }

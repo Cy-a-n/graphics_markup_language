@@ -9,15 +9,15 @@ use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
 use crate::token::Value;
-use crate::token::Value::{Equals, StructEnd, StructStart, X, Y};
+use crate::token::Value::{Equals, LeftBrace, RightBrace, X, Y};
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
 
 #[derive(Debug, PartialEq)]
 pub struct Point {
-    pub(super) x: i16,
-    pub(super) y: i16,
+    pub x: i16,
+    pub y: i16,
 }
 
 #[allow(unused)]
@@ -63,12 +63,65 @@ impl Point {
         }
     }
 
-    pub fn x(&self) -> i16 {
-        self.x
+    pub(super) fn add(&mut self, rhs: &Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
     }
 
-    pub fn y(&self) -> i16 {
-        self.y
+    pub fn sub(&mut self, rhs: &Self) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+    }
+
+    pub(super) fn from_point_f32(point: &PointF32) -> Self {
+        Self {
+            x: point.x.round() as i16,
+            y: point.y.round() as i16,
+        }
+    }
+
+    pub fn rotate(&mut self, angle_rad: f32) {
+        let mut point_f32 = PointF32::from_point(self);
+        point_f32.rotate(angle_rad);
+        *self = Self::from_point_f32(&point_f32);
+    }
+
+    pub fn rotate_around(&mut self, center: &Self, angle_rad: f32) {
+        let mut point_f32 = PointF32::from_point(self);
+        point_f32.rotate_around(&PointF32::from_point(center), angle_rad);
+        *self = Self::from_point_f32(&point_f32);
+    }
+}
+
+pub(super) struct PointF32 {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl PointF32 {
+    pub fn from_point(point: &Point) -> Self {
+        Self {
+            x: point.x as f32,
+            y: point.y as f32,
+        }
+    }
+
+    pub fn rotate(&mut self, angle_rad: f32) {
+        self.x = self.x * angle_rad.cos() - self.y * angle_rad.sin();
+        self.y = self.x * angle_rad.sin() + self.y * angle_rad.cos();
+    }
+
+    pub fn rotate_around(&mut self, center: &Self, angle_rad: f32) {
+        // Translate the point and the center to the origin
+        self.x -= center.x;
+        self.y -= center.y;
+
+        // Rotate the translated point around the origin
+        self.rotate(angle_rad);
+
+        // Translate the rotated point back to its original position
+        self.x += center.x;
+        self.y += center.y;
     }
 }
 
@@ -93,7 +146,7 @@ impl State {
     ) -> Result<Self, Error<'a>> {
         Ok(match self {
             Start => transition!(tokens_iter,
-                StructStart => State::StructStart,
+                LeftBrace => State::StructStart,
             ),
             State::StructStart => transition!(tokens_iter,
                 X => State::X,
@@ -113,7 +166,7 @@ impl State {
                 Y => State::Y(value),
             ),
             State::Y(mut value) => transition_peek!(tokens_iter,
-                StructEnd => {tokens_iter.next(); Return(value)},
+                RightBrace => {tokens_iter.next(); Return(value)},
                 Equals => {
                     value.y = match parse_i16(tokens_iter, tokens) {
                         Ok(value) => value,
@@ -123,7 +176,7 @@ impl State {
                 },
             ),
             YValue(value) => transition!(tokens_iter,
-                StructEnd => Return(value),
+                RightBrace => Return(value),
             ),
             Return(_) => panic!("BUG: The 'next_state' method should never be called on the 'End' state. 'state': '{self:?}'."),
             UnexpectedEnd(_) => panic!("BUG: The 'next_state' method should never be called on the 'TokensUnexpectedEnd' state. 'state': '{self:?}'."),
@@ -143,7 +196,7 @@ mod tests {
         },
         token::{
             Token,
-            Value::{Equals, One, StructEnd, StructStart, Zero, X, Y},
+            Value::{Equals, LeftBrace, One, RightBrace, Zero, X, Y},
         },
     };
 
@@ -153,7 +206,7 @@ mod tests {
         let expected = Parser(UnexpectedToken {
             parsed_type: ParsedType::Point,
             current_value_slice: &tokens,
-            expected_tokens: vec![StructStart],
+            expected_tokens: vec![LeftBrace],
         });
         if let Err(actual) = Point::from_token(&mut tokens.iter().enumerate().peekable(), &tokens) {
             assert_eq!(expected, actual);
@@ -164,7 +217,7 @@ mod tests {
 
     #[test]
     fn tokens_unexpected_end() {
-        let tokens = vec![Token::default(StructStart)];
+        let tokens = vec![Token::default(LeftBrace)];
         let expected = Parser(UnexpectedEnd {
             parsed_type: ParsedType::Point,
             current_value_slice: &tokens,
@@ -180,10 +233,10 @@ mod tests {
     #[test]
     fn minimum() {
         let tokens = vec![
-            Token::default(StructStart),
+            Token::default(LeftBrace),
             Token::default(X),
             Token::default(Y),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = Point::default();
         let actual = Point::from_token(&mut tokens.iter().enumerate().peekable(), &tokens)
@@ -195,7 +248,7 @@ mod tests {
     #[test]
     fn maximum() {
         let tokens = vec![
-            Token::default(StructStart),
+            Token::default(LeftBrace),
             Token::default(X),
             Token::default(Equals),
             Token::default(One),
@@ -203,12 +256,25 @@ mod tests {
             Token::default(Equals),
             Token::default(One),
             Token::default(Zero),
-            Token::default(StructEnd),
+            Token::default(RightBrace),
         ];
         let expected = Point { x: 1, y: 2 };
         let actual = Point::from_token(&mut tokens.iter().enumerate().peekable(), &tokens)
             .expect("The parser failed.");
 
         assert_eq!(expected, actual);
+    }
+
+    // Test Point::rotate()
+    #[test]
+    fn rotate_around() {
+        let mut point = Point { x: 1, y: 0 };
+        let center = Point { x: 0, y: 0 };
+        let angle_rad = std::f32::consts::PI;
+
+        point.rotate_around(&center, angle_rad);
+
+        assert_eq!(point.x, -1);
+        assert_eq!(point.y, 0);
     }
 }

@@ -1,4 +1,4 @@
-use std::process::exit;
+use std::{process::exit, str::FromStr};
 
 use parser::parse;
 
@@ -10,13 +10,30 @@ mod token;
 
 fn main() {
     let mut tokens = lexer::to_tokens(
-        r#"{
-            position
-             rotation
-              width
-               border_color
-                fill_color 
-            vertices"#,
+        r#"
+{
+    position
+    rotation = 1111111
+    width
+    border_color
+    fill_color 
+    vertices
+    children [
+        {
+            position {
+                x = 1
+                y
+            }
+            rotation
+            width
+            border_color
+            fill_color 
+            vertices
+            children
+        }
+    ]
+}
+"#,
     )
     .unwrap_or_else(|error| {
         error.raise();
@@ -26,4 +43,6 @@ fn main() {
         error.raise();
         exit(1)
     });
+
+    println!("{:?}", token::Value::from_str("Equals"));
 }
