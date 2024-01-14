@@ -1,6 +1,5 @@
 use std::{env, fs::File, io::prelude::*, process::exit};
 
-use parser::parse;
 mod custom_error;
 mod error_handling;
 mod lexer;
@@ -45,7 +44,7 @@ fn main() {
         }
     };
 
-    let to_draw = match parse(&mut tokens) {
+    let to_draw = match parser::parse(&mut tokens) {
         Ok(td) => td,
         Err(error) => {
             error.raise();
@@ -55,7 +54,7 @@ fn main() {
 
     let svg = svg_transpiler::to_svg(to_draw);
 
-    let mut output_file = match File::create(&output_path) {
+    let mut output_file = match File::create(output_path) {
         Ok(file) => file,
         Err(error) => {
             eprintln!("Error creating output file: {}", error);

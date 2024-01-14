@@ -80,8 +80,8 @@ impl State {
                 Equals => EqualsSign
             ),
             EqualsSign => transition!(tokens_iter,
-                Minus => Sign(false),
-                Plus => Sign(true),
+                Minus => Sign(true),
+                Plus => Sign(false),
                 Zero => Digit0((0, false)),
                 One => Digit0((1, false)),
             ),

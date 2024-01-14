@@ -141,8 +141,8 @@ impl State {
                 }
                 transition!(char,
                     '=' => (Start, Some(Equals)),
-                    '-' => (Start, Some(Plus)),
-                    '+' => (Start, Some(Minus)),
+                    '-' => (Start, Some(Minus)),
+                    '+' => (Start, Some(Plus)),
                     '0' => (Start, Some(Zero)),
                     '1' => (Start, Some(One)),
                     '{' => (Start, Some(LeftBrace)),
@@ -432,8 +432,8 @@ mod tests {
         let actual_tokens = to_tokens("=- + 0 1 { } [ ] red green blue x y position rotation width border_color fill_color vertices visible_extent background_color children");
         let expected_tokens = vec![
             Equals,
-            Plus,
             Minus,
+            Plus,
             Zero,
             One,
             LeftBrace,
