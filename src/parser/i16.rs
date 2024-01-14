@@ -193,7 +193,7 @@ mod tests {
     fn positive_0_full() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(Minus),
+            Token::default(Plus),
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
@@ -224,7 +224,7 @@ mod tests {
     fn negative_0_full() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(Plus),
+            Token::default(Minus),
             Token::default(Zero),
             Token::default(Zero),
             Token::default(Zero),
@@ -283,7 +283,7 @@ mod tests {
     fn positive_max() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(Minus),
+            Token::default(Plus),
             Token::default(One),
             Token::default(One),
             Token::default(One),
@@ -312,7 +312,7 @@ mod tests {
     fn negative_max() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(Plus),
+            Token::default(Minus),
             Token::default(One),
             Token::default(One),
             Token::default(One),
@@ -341,7 +341,7 @@ mod tests {
     fn random_partial() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(Plus),
+            Token::default(Minus),
             Token::default(One),
             Token::default(One),
             Token::default(One),
@@ -363,7 +363,7 @@ mod tests {
     fn random_partial_1() {
         let tokens = vec![
             Token::default(Equals),
-            Token::default(Minus),
+            Token::default(Plus),
             Token::default(Zero),
             Token::default(One),
             Token::default(One),
