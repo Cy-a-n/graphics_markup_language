@@ -24,11 +24,11 @@ pub(super) fn simplify(root_polygon: Polygon) -> Vec<SimplePolygon> {
 
     // Rotate the vertices
     for vertex in &mut vertices {
-        vertex.rotate_around(&position, rotation_rad);
+        vertex.rotate(rotation_rad);
+        vertex.add(&position);
     }
 
     output.push(SimplePolygon {
-        position,
         width,
         border_color,
         fill_color,
@@ -40,7 +40,6 @@ pub(super) fn simplify(root_polygon: Polygon) -> Vec<SimplePolygon> {
 
 #[derive(Debug, PartialEq)]
 pub struct SimplePolygon {
-    pub position: Point,
     pub width: i16,
     pub border_color: Color,
     pub fill_color: Color,
@@ -57,7 +56,6 @@ mod tests {
     fn minimum() {
         let polygon = Polygon::default();
         let expected = SimplePolygon {
-            position: Point::default(),
             width: 0,
             border_color: Color::default(),
             fill_color: Color::default(),
@@ -100,14 +98,14 @@ mod tests {
                     border_color: Color::default(),
                     fill_color: Color::default(),
                     width: 0,
-                    vertices: vec![],
+                    vertices: vec![Point { x: 2, y: 2 }],
                     children: vec![Polygon {
                         position: Point { x: 1, y: 1 },
                         rotation_rad: 0.0,
                         border_color: Color::default(),
                         fill_color: Color::default(),
                         width: 0,
-                        vertices: vec![],
+                        vertices: vec![Point { x: 3, y: 3 }],
                         children: vec![],
                     }],
                 },
@@ -115,28 +113,24 @@ mod tests {
         };
         let expected = vec![
             SimplePolygon {
-                position: Point { x: 0, y: 0 },
                 width: 0,
                 border_color: Color::default(),
                 fill_color: Color::default(),
                 vertices: vec![Point { x: -1, y: -1 }],
             },
             SimplePolygon {
-                position: Point { x: 1, y: 1 },
                 width: 0,
                 border_color: Color::default(),
                 fill_color: Color::default(),
-                vertices: vec![],
+                vertices: vec![Point { x: 4, y: 4 }],
             },
             SimplePolygon {
-                position: Point { x: 0, y: 0 },
                 width: 0,
                 border_color: Color::default(),
                 fill_color: Color::default(),
-                vertices: vec![],
+                vertices: vec![Point { x: 2, y: 2 }],
             },
             SimplePolygon {
-                position: Point { x: 1, y: 1 },
                 width: 1,
                 border_color: Color {
                     red: 1,
@@ -148,7 +142,7 @@ mod tests {
                     green: 2,
                     blue: 2,
                 },
-                vertices: vec![Point { x: 0, y: 1 }, Point { x: 1, y: 0 }],
+                vertices: vec![Point { x: -1, y: 0 }, Point { x: 0, y: -1 }],
             },
         ];
         let actual = simplify(polygon);

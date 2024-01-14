@@ -1,0 +1,1082 @@
+{
+    position
+    rotation
+    width
+    border_color
+    fill_color
+    vertices
+    children [
+        {
+            position
+            rotation
+            width
+            border_color
+            fill_color
+            vertices
+            children [
+                {
+                    position {
+                        x
+                        y = -1000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 10010000
+                        blue = 1000000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = -1000000
+                            y = -1000000
+                        }
+                        {
+                            x = 1000000
+                            y = -1000000
+                        }
+                    ]
+                    children [
+                        {
+                            position
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red = 10000000
+                                green = 1000000
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -10000
+                                    y = -10000
+                                }
+                                {
+                                    x
+                                    y = -100000
+                                }
+                                {
+                                    x = 10000
+                                    y = -10000
+                                }
+                            ]
+                            children
+                        }
+                        {
+                            position {
+                                x = -10100
+                                y = -100000
+                            }
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red
+                                green
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -1000
+                                    y = -1000
+                                }
+                                {
+                                    x
+                                    y = -10000
+                                }
+                                {
+                                    x = 1000
+                                    y = -1000
+                                }
+                            ]
+                            children
+                        }
+                        {
+                            position {
+                                x = 10100
+                                y = -100000
+                            }
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red
+                                green
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -1000
+                                    y = -1000
+                                }
+                                {
+                                    x
+                                    y = -10000
+                                }
+                                {
+                                    x = 1000
+                                    y = -1000
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = -100000
+                        y = -10000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 1000000
+                        blue = 100000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = -100000
+                            y
+                        }
+                        {
+                            x = -100000
+                            y = -100000
+                        }
+                    ]
+                    children [
+                        {
+                            position {
+                                x = -110
+                                y
+                            }
+                            rotation
+                            width
+                            border_color 
+                            fill_color {
+                                red = 1111111
+                                green = 111111
+                                blue = 111111
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -10110
+                                    y
+                                }
+
+                                {
+                                    x = -10110
+                                    y = -10110
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = 100000
+                        y = -10000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 1000000
+                        blue = 100000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = 100000
+                            y
+                        }
+                        {
+                            x = 100000
+                            y = -100000
+                        }
+                    ]
+                    children [
+                        {
+                            position {
+                                x = 110
+                                y
+                            }
+                            rotation
+                            width
+                            border_color 
+                            fill_color {
+                                red = 1111111
+                                green = 111111
+                                blue = 111111
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = 10110
+                                    y
+                                }
+
+                                {
+                                    x = 10110
+                                    y = -10110
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+            ]
+        }
+        {
+            position
+            rotation = 1000000
+            width
+            border_color
+            fill_color
+            vertices
+            children [
+                {
+                    position {
+                        x
+                        y = -1000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 10010000
+                        blue = 1000000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = -1000000
+                            y = -1000000
+                        }
+                        {
+                            x = 1000000
+                            y = -1000000
+                        }
+                    ]
+                    children [
+                        {
+                            position
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red = 10000000
+                                green = 1000000
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -10000
+                                    y = -10000
+                                }
+                                {
+                                    x
+                                    y = -100000
+                                }
+                                {
+                                    x = 10000
+                                    y = -10000
+                                }
+                            ]
+                            children
+                        }
+                        {
+                            position {
+                                x = -10100
+                                y = -100000
+                            }
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red
+                                green
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -1000
+                                    y = -1000
+                                }
+                                {
+                                    x
+                                    y = -10000
+                                }
+                                {
+                                    x = 1000
+                                    y = -1000
+                                }
+                            ]
+                            children
+                        }
+                        {
+                            position {
+                                x = 10100
+                                y = -100000
+                            }
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red
+                                green
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -1000
+                                    y = -1000
+                                }
+                                {
+                                    x
+                                    y = -10000
+                                }
+                                {
+                                    x = 1000
+                                    y = -1000
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = -100000
+                        y = -10000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 1000000
+                        blue = 100000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = -100000
+                            y
+                        }
+                        {
+                            x = -100000
+                            y = -100000
+                        }
+                    ]
+                    children [
+                        {
+                            position {
+                                x = -110
+                                y
+                            }
+                            rotation
+                            width
+                            border_color 
+                            fill_color {
+                                red = 1111111
+                                green = 111111
+                                blue = 111111
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -10110
+                                    y
+                                }
+
+                                {
+                                    x = -10110
+                                    y = -10110
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = 100000
+                        y = -10000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 1000000
+                        blue = 100000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = 100000
+                            y
+                        }
+                        {
+                            x = 100000
+                            y = -100000
+                        }
+                    ]
+                    children [
+                        {
+                            position {
+                                x = 110
+                                y
+                            }
+                            rotation
+                            width
+                            border_color 
+                            fill_color {
+                                red = 1111111
+                                green = 111111
+                                blue = 111111
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = 10110
+                                    y
+                                }
+
+                                {
+                                    x = 10110
+                                    y = -10110
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+            ]
+        }
+        {
+            position
+            rotation = 10000000
+            width
+            border_color
+            fill_color
+            vertices
+            children [
+                {
+                    position {
+                        x
+                        y = -1000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 10010000
+                        blue = 1000000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = -1000000
+                            y = -1000000
+                        }
+                        {
+                            x = 1000000
+                            y = -1000000
+                        }
+                    ]
+                    children [
+                        {
+                            position
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red = 10000000
+                                green = 1000000
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -10000
+                                    y = -10000
+                                }
+                                {
+                                    x
+                                    y = -100000
+                                }
+                                {
+                                    x = 10000
+                                    y = -10000
+                                }
+                            ]
+                            children
+                        }
+                        {
+                            position {
+                                x = -10100
+                                y = -100000
+                            }
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red
+                                green
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -1000
+                                    y = -1000
+                                }
+                                {
+                                    x
+                                    y = -10000
+                                }
+                                {
+                                    x = 1000
+                                    y = -1000
+                                }
+                            ]
+                            children
+                        }
+                        {
+                            position {
+                                x = 10100
+                                y = -100000
+                            }
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red
+                                green
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -1000
+                                    y = -1000
+                                }
+                                {
+                                    x
+                                    y = -10000
+                                }
+                                {
+                                    x = 1000
+                                    y = -1000
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = -100000
+                        y = -10000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 1000000
+                        blue = 100000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = -100000
+                            y
+                        }
+                        {
+                            x = -100000
+                            y = -100000
+                        }
+                    ]
+                    children [
+                        {
+                            position {
+                                x = -110
+                                y
+                            }
+                            rotation
+                            width
+                            border_color 
+                            fill_color {
+                                red = 1111111
+                                green = 111111
+                                blue = 111111
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -10110
+                                    y
+                                }
+
+                                {
+                                    x = -10110
+                                    y = -10110
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = 100000
+                        y = -10000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 1000000
+                        blue = 100000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = 100000
+                            y
+                        }
+                        {
+                            x = 100000
+                            y = -100000
+                        }
+                    ]
+                    children [
+                        {
+                            position {
+                                x = 110
+                                y
+                            }
+                            rotation
+                            width
+                            border_color 
+                            fill_color {
+                                red = 1111111
+                                green = 111111
+                                blue = 111111
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = 10110
+                                    y
+                                }
+
+                                {
+                                    x = 10110
+                                    y = -10110
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+            ]
+        }
+        {
+            position
+            rotation = 11000000
+            width
+            border_color
+            fill_color
+            vertices
+            children [
+                {
+                    position {
+                        x
+                        y = -1000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 10010000
+                        blue = 1000000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = -1000000
+                            y = -1000000
+                        }
+                        {
+                            x = 1000000
+                            y = -1000000
+                        }
+                    ]
+                    children [
+                        {
+                            position
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red = 10000000
+                                green = 1000000
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -10000
+                                    y = -10000
+                                }
+                                {
+                                    x
+                                    y = -100000
+                                }
+                                {
+                                    x = 10000
+                                    y = -10000
+                                }
+                            ]
+                            children
+                        }
+                        {
+                            position {
+                                x = -10100
+                                y = -100000
+                            }
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red
+                                green
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -1000
+                                    y = -1000
+                                }
+                                {
+                                    x
+                                    y = -10000
+                                }
+                                {
+                                    x = 1000
+                                    y = -1000
+                                }
+                            ]
+                            children
+                        }
+                        {
+                            position {
+                                x = 10100
+                                y = -100000
+                            }
+                            rotation
+                            width
+                            border_color
+                            fill_color {
+                                red
+                                green
+                                blue
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -1000
+                                    y = -1000
+                                }
+                                {
+                                    x
+                                    y = -10000
+                                }
+                                {
+                                    x = 1000
+                                    y = -1000
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = -100000
+                        y = -10000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 1000000
+                        blue = 100000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = -100000
+                            y
+                        }
+                        {
+                            x = -100000
+                            y = -100000
+                        }
+                    ]
+                    children [
+                        {
+                            position {
+                                x = -110
+                                y
+                            }
+                            rotation
+                            width
+                            border_color 
+                            fill_color {
+                                red = 1111111
+                                green = 111111
+                                blue = 111111
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = -10110
+                                    y
+                                }
+
+                                {
+                                    x = -10110
+                                    y = -10110
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+                {
+                    position {
+                        x = 100000
+                        y = -10000000
+                    }
+                    rotation
+                    width = 11
+                    border_color {
+                        red = 1111111
+                        green = 1001000
+                        blue = 100000
+                    }
+                    fill_color {
+                        red = 11111111
+                        green = 1000000
+                        blue = 100000
+                    }
+                    vertices [
+                        {
+                            x
+                            y
+                        }
+                        {
+                            x = 100000
+                            y
+                        }
+                        {
+                            x = 100000
+                            y = -100000
+                        }
+                    ]
+                    children [
+                        {
+                            position {
+                                x = 110
+                                y
+                            }
+                            rotation
+                            width
+                            border_color 
+                            fill_color {
+                                red = 1111111
+                                green = 111111
+                                blue = 111111
+                            }
+                            vertices [
+                                {
+                                    x
+                                    y
+                                }
+                                {
+                                    x = 10110
+                                    y
+                                }
+
+                                {
+                                    x = 10110
+                                    y = -10110
+                                }
+                            ]
+                            children
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

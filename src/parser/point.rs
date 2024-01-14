@@ -107,8 +107,11 @@ impl PointF32 {
     }
 
     pub fn rotate(&mut self, angle_rad: f32) {
-        self.x = self.x * angle_rad.cos() - self.y * angle_rad.sin();
-        self.y = self.x * angle_rad.sin() + self.y * angle_rad.cos();
+        let new_x = self.x * angle_rad.cos() - self.y * angle_rad.sin();
+        let new_y = self.x * angle_rad.sin() + self.y * angle_rad.cos();
+
+        self.x = new_x;
+        self.y = new_y;
     }
 
     pub fn rotate_around(&mut self, center: &Self, angle_rad: f32) {

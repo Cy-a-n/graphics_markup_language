@@ -1,0 +1,26 @@
+{
+    position
+    rotation
+    width
+    border_color
+    fill_color {
+        red = 11111111
+        green = 11111111
+        blue = 11111111
+    }
+    vertices[
+        {
+            x = -100000000
+            y
+        }
+        {
+            x = 100000000
+            y
+        }
+        {
+            x
+            y = 100000000
+        }
+    ]
+    children
+}

@@ -1,0 +1,9 @@
+{
+    position
+    rotation
+    width
+    border_color
+    fill_color
+    vertices
+    children
+}

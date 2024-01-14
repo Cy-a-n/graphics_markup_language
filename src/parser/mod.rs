@@ -2,7 +2,9 @@ use crate::{error_handling::Error, token::Token};
 
 use polygon::Polygon;
 
-use self::simple_polygon::SimplePolygon;
+pub use color::Color;
+pub use point::Point;
+pub use simple_polygon::SimplePolygon;
 
 mod color;
 mod i16;
