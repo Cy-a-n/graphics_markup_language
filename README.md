@@ -75,7 +75,7 @@ git clone --branch vX.X.X git@github.com:Cy-a-n/graphics_markup_language.git
 ```
 i.e.: 
 ```bash
-git clone --branch v0.1.1 git@github.com:Cy-a-n/graphics_markup_language.git
+git clone --branch v0.1.2 git@github.com:Cy-a-n/graphics_markup_language.git
 ```
 
 ##### Option 2: Downloading Zip Archive
