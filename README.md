@@ -1,4 +1,4 @@
-# Graphics Markup Language (GML)
+# Graphics Markup Language (GCML)
 
 ## Overview
 
@@ -56,3 +56,115 @@ The simplest syntactically correct .gcml file would thus be:
 ```
 
 For further examples check out the `./examples/` directory.
+
+## Installation
+
+### Compiling from source
+
+#### Step 1: Install Rust
+
+Follow the official Rust installation guide to install Rust on your system. You can find available installation methods [here](https://forge.rust-lang.org/infra/other-installation-methods.html).
+
+#### Step 2: Download the Source Code
+
+##### Option 1: Using Git (Recommended)
+Clone the repository using Git:
+
+```bash
+git clone --branch vX.X.X git@github.com:Cy-a-n/graphics_markup_language.git
+```
+i.e.: 
+```bash
+git clone --branch v0.1.1 git@github.com:Cy-a-n/graphics_markup_language.git
+```
+
+##### Option 2: Downloading Zip Archive
+1. Visit the releases page on the repository [here](https://github.com/Cy-a-n/graphics_markup_language/releases).
+2. Download the source code as a zip archive.
+3. Extract the contents of the zip archive to your desired location.
+
+#### Step 3: Build the Program
+
+Navigate to the project directory:
+
+```bash
+cd your-rust-program
+```
+
+Build the program using cargo:
+
+```bash
+cargo build --release
+```
+
+This command compiles the program in release mode, optimizing for performance.
+
+#### Step 4: Find the Executable
+
+Once the build process is complete, you can find the executable in the target/release/ directory within your project folder.
+
+- On Linux/macOS:
+  ```./target/release/your-rust-program```
+
+- On Windows:
+  ```.\target\release\your-rust-program.exe```
+
+Congratulations! You have successfully compiled and built the Rust program from source. If there are any additional steps specific to your program or platform, please refer to the program's documentation.
+
+### Downloading prebuild executables
+
+One can also download prebuild executables in the releases tab [here](https://github.com/Cy-a-n/graphics_markup_language/releases).
+
+### Adding the Executable to the PATH Variable
+
+Regardless of how you obtained the executable, you may want to add it to your system's `PATH` variable for convenient command-line access. Follow these general steps:
+
+#### **On Windows:**
+
+1. Copy the path to the directory containing the executable.
+
+2. Open the Start menu and search for "Environment Variables."
+
+3. Click on "Edit the system environment variables."
+
+4. In the System Properties window, click the "Environment Variables" button.
+
+5. In the "System Variables" section, select the "Path" variable and click "Edit."
+
+6. Click "New" and paste the path you copied.
+
+7. Click "OK" to close each window.
+
+Now, you should be able to run the executable from the command prompt or PowerShell without specifying its full path.
+
+#### **On macOS and Linux:**
+
+1. Open a terminal window.
+
+2. Edit your shell configuration file (e.g., `~/.bashrc`, `~/.zshrc`, `~/.bash_profile`, or `~/.profile`). Use a text editor like `nano` or `vim`.
+
+3. Add the following line at the end of the file, replacing `/path/to/executable` with the actual path:
+
+```bash
+export PATH=$PATH:/path/to/executable
+```
+
+4. Save and close the file.
+
+5. Run `source ~/.bashrc` (or the corresponding file for your shell) to apply the changes immediately.
+
+Now, you should be able to run the executable from any terminal window without specifying its full path.
+
+Remember to replace "/path/to/executable" with the actual path to the directory containing your executable.
+
+## Usage
+
+To compile source code to SVG using the executable, use the following command:
+
+```bash
+name_of_the_executable ./path/to/source/code [./path/to/output/file]
+```
+
+- Replace `name_of_the_executable` with the actual name of the executable, i.e. `graphics_markup_language`.
+
+After compilation, open the resulting SVG file using an image viewer of your choice. Browsers are often the best choice for rendering SVG files.
