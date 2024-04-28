@@ -1,5 +1,7 @@
 use crate::parser::{Color, Point, SimplePolygon};
 
+/// Parses the polygons to svg. This is easy, since [`SimplePolygon`] has a subset of attributes of svg's polygon element.
+/// If the [`SimplePolygon`] has a single only a single vertex it parsed to a circle instead. A [`SimplePolygon`] with two vertices is parsed to line and a [`SimplePolygon`] gets ignored.
 pub fn to_svg(polygons: Vec<SimplePolygon>) -> String {
     let mut output = String::from(
         "<svg version=\"1.1\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-255 -255 510 510\">",

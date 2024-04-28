@@ -1,9 +1,11 @@
 use self::State::*;
 use crate::{
     error_handling::Error::{self, LexerUnexpectedChar},
-    token::{Token, Value, Value::*},
+    token::{Token, TokenValue, TokenValue::*},
 };
 
+/// Represents a single transition and from one state of a mealy machine to another based on its input. Also returns the output of the transition.
+/// Expands to a simple match statement.
 macro_rules! transition {
     ($input:expr, $( $expected_input:expr => $next_state:expr ),* $(,)?) =>
     {
@@ -14,30 +16,40 @@ macro_rules! transition {
     }
 }
 
+/// Tokenizes the source code.
+/// Returns an [`Error`] if it encounters an unexpected character.
+/// Works by iterating over chars in the source code and feeding them as input to a mealy automata.
 pub fn to_tokens(source_code: &str) -> Result<Vec<Token>, Error> {
-    let mut output: Vec<Token> = vec![];
+    let mut tokens: Vec<Token> = vec![];
     let mut current_state = Start;
-    for (line_number, line_content) in source_code.lines().enumerate() {
-        for (offset, char) in line_content.chars().enumerate() {
+
+    for (line_number_error_handling, line_content) in source_code.lines().enumerate() {
+        for (offset_error_handling, char) in line_content.chars().enumerate() {
             let (next_state, value) = current_state.next_state(char);
 
+            // Error state
             if let UnexpectedChar(expected_chars) = next_state {
                 return Result::Err(LexerUnexpectedChar {
                     error_char: char,
                     expected_chars,
                     error_line_content: line_content.to_string(),
-                    error_line_number: line_number,
-                    error_offset: offset,
+                    error_line_number: line_number_error_handling,
+                    error_offset: offset_error_handling,
                 });
             }
+            // Push a new token to the output
             if let Some(value) = value {
-                output.push(Token::new_from_end(line_number, offset + 1, value));
+                tokens.push(Token::new_from_end(
+                    line_number_error_handling,
+                    offset_error_handling + 1,
+                    value,
+                ));
             }
 
             current_state = next_state;
         }
     }
-    Ok(output)
+    Ok(tokens)
 }
 
 #[derive(Debug)]
@@ -133,7 +145,9 @@ enum State {
 }
 
 impl State {
-    fn next_state(&self, char: char) -> (Self, Option<Value>) {
+    /// A simple transition and output function of a mealy automata.
+    fn next_state(&self, char: char) -> (Self, Option<TokenValue>) {
+        // I make heavy use of declarative macros here to reduce at least some boilerplate code.
         match self {
             Start => {
                 if char.is_whitespace() {
@@ -375,7 +389,7 @@ impl State {
 
 #[cfg(test)]
 mod tests {
-    use crate::token::Value;
+    use crate::token::TokenValue;
 
     use super::*;
     pub fn is_same_variant<T>(v1: &T, v2: &T) -> bool {
@@ -385,10 +399,10 @@ mod tests {
     }
 
     fn err_actual_tokens_iter_ends(
-        expected_token: &Value,
+        expected_token: &TokenValue,
         index: &usize,
         actual_tokens: &Vec<Token>,
-        expected_tokens: &Vec<Value>,
+        expected_tokens: &Vec<TokenValue>,
     ) -> Result<(), String> {
         Result::Err(format!(
             "'actual_tokens_iter' ended before 'expected_tokens_iter'.\n'expected_token': '{:?}',\n'index': {},\n'actual_tokens': '{:?}',\n'expected_tokens': '{:?}'.",
@@ -403,7 +417,7 @@ mod tests {
         actual_token: &Token,
         index: &usize,
         actual_tokens: &Vec<Token>,
-        expected_tokens: &Vec<Value>,
+        expected_tokens: &Vec<TokenValue>,
     ) -> Result<(), String> {
         Result::Err(format!(
             "'expected_tokens_iter' ended before 'actual_tokens_iter'.\n'actual_token': '{:?}',\n'index': {},\n'actual_tokens': '{:?}',\n'expected_tokens': '{:?}'.",
@@ -416,10 +430,10 @@ mod tests {
 
     fn err_token_mismatch(
         actual_token: &Token,
-        expected_token: &Value,
+        expected_token: &TokenValue,
         index: &usize,
         actual_tokens: &Vec<Token>,
-        expected_tokens: &Vec<Value>,
+        expected_tokens: &Vec<TokenValue>,
     ) -> Result<(), String> {
         Result::Err(format!("'actual_token' does not equal 'current_token'.\n 'actual_token': '{:?}', 'expected_token': '{:?}',\n'index': {},\n'actual_tokens': '{:?}',\n'expected_tokens': '{:?}'.", actual_token, expected_token,
         index,

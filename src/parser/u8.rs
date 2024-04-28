@@ -6,8 +6,8 @@ use crate::error_handling::ParsedType::U8;
 use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
-use crate::token::Value;
-use crate::token::Value::{Equals,One, Zero};
+use crate::token::TokenValue;
+use crate::token::TokenValue::{Equals,One, Zero};
 use std::f32::consts::PI;
 use std::iter::Enumerate;
 use std::str::FromStr;
@@ -45,8 +45,8 @@ enum State {
     Digit5(u8),
     Digit6(u8),
     Return(u8),
-    UnexpectedEnd(Vec<Value>),
-    UnexpectedToken(Vec<Value>, usize),
+    UnexpectedEnd(Vec<TokenValue>),
+    UnexpectedToken(Vec<TokenValue>, usize),
 }
 
 impl State {
@@ -97,7 +97,7 @@ impl State {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{token::Value::{One, RightBrace, Zero}, error_handling::ParserError::{UnexpectedToken, UnexpectedEnd}};
+    use crate::{token::TokenValue::{One, RightBrace, Zero}, error_handling::ParserError::{UnexpectedToken, UnexpectedEnd}};
 
     #[test]
     fn parse_u8_0_full() {

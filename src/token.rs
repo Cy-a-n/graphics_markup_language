@@ -4,7 +4,7 @@ use strum_macros::{Display, EnumString};
 
 #[derive(PartialEq, Clone)]
 pub struct Token {
-    value: Value,
+    value: TokenValue,
     line: usize,
     offset_start_inclusive: usize,
     offset_end_exclusive: usize,
@@ -12,7 +12,7 @@ pub struct Token {
 
 impl Token {
     #[cfg(test)]
-    pub fn default(value: Value) -> Self {
+    pub fn default(value: TokenValue) -> Self {
         Token {
             line: 0,
             offset_start_inclusive: 0,
@@ -22,16 +22,16 @@ impl Token {
     }
 
     #[cfg(test)]
-    pub fn new(line: usize, offset_start_inclusive: usize, value: Value) -> Self {
+    pub fn new(line: usize, offset_start_inclusive: usize, value: TokenValue) -> Self {
         Token {
             line,
             offset_start_inclusive,
-            offset_end_exclusive: offset_start_inclusive + Value::len(&value),
+            offset_end_exclusive: offset_start_inclusive + TokenValue::len(&value),
             value,
         }
     }
 
-    pub fn new_from_end(line: usize, offset_end_exclusive: usize, value: Value) -> Self {
+    pub fn new_from_end(line: usize, offset_end_exclusive: usize, value: TokenValue) -> Self {
         Token {
             line,
             offset_start_inclusive: offset_end_exclusive - value.len(),
@@ -40,7 +40,7 @@ impl Token {
         }
     }
 
-    pub fn value(&self) -> &Value {
+    pub fn value(&self) -> &TokenValue {
         &self.value
     }
 
@@ -69,7 +69,7 @@ impl std::fmt::Debug for Token {
 }
 
 #[derive(Debug, PartialEq, Clone, EnumString, Display)]
-pub enum Value {
+pub enum TokenValue {
     #[strum(to_string = "=", serialize = "Equals")]
     Equals,
     #[strum(to_string = "-", serialize = "Minus")]
@@ -118,7 +118,7 @@ pub enum Value {
     Children,
 }
 
-impl Value {
+impl TokenValue {
     pub fn len(&self) -> usize {
         self.to_string().len()
     }

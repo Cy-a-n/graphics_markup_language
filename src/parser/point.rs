@@ -8,8 +8,8 @@ use crate::error_handling::ParsedType;
 use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
-use crate::token::Value;
-use crate::token::Value::{Equals, LeftBrace, RightBrace, X, Y};
+use crate::token::TokenValue;
+use crate::token::TokenValue::{Equals, LeftBrace, RightBrace, X, Y};
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
@@ -137,8 +137,8 @@ enum State {
     Y(Point),
     YValue(Point),
     Return(Point),
-    UnexpectedEnd(Vec<Value>),
-    UnexpectedToken(Vec<Value>, usize),
+    UnexpectedEnd(Vec<TokenValue>),
+    UnexpectedToken(Vec<TokenValue>, usize),
 }
 
 impl State {
@@ -199,7 +199,7 @@ mod tests {
         },
         token::{
             Token,
-            Value::{Equals, LeftBrace, One, RightBrace, Zero, X, Y},
+            TokenValue::{Equals, LeftBrace, One, RightBrace, Zero, X, Y},
         },
     };
 

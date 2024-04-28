@@ -14,8 +14,12 @@ mod polygon;
 mod simple_polygon;
 mod u8;
 
+/// Parses the tokenized source code to simple polygons.
 pub fn parse(tokens: &mut [Token]) -> Result<Vec<SimplePolygon>, Error> {
-    match Polygon::from_tokens(&mut tokens.iter().enumerate().peekable(), tokens) {
+    // First we build a tree of polygons that corresponds one to one to the polygon structure of the source code.
+    let polygon_tree = Polygon::from_tokens(&mut tokens.iter().enumerate().peekable(), tokens);
+    match polygon_tree {
+        // Then we simplify it.
         Ok(root_polygon) => Ok(simple_polygon::simplify(root_polygon)),
         Err(error) => Err(error),
     }

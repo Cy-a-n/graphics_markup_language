@@ -2,6 +2,7 @@ use super::color::Color;
 use super::point::Point;
 use super::polygon::Polygon;
 
+/// This function simplifies a polygon tree to a vec of simple polygons by recursively calling the children of the polygons and applying their parents rotation and position.
 pub(super) fn simplify(root_polygon: Polygon) -> Vec<SimplePolygon> {
     let mut output: Vec<SimplePolygon> = vec![];
 
@@ -19,6 +20,7 @@ pub(super) fn simplify(root_polygon: Polygon) -> Vec<SimplePolygon> {
         child.position.rotate(rotation_rad);
         child.position.add(&position);
         child.rotation_rad += rotation_rad;
+        // Recursion happens here.
         output.extend(simplify(child));
     }
 

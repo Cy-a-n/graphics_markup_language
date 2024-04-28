@@ -4,11 +4,11 @@ macro_rules! transition {
     ($tokens:expr, $( $expected_input:pat => $next_state:expr ),* $(,)?) => {
         {
             match $tokens.next() {
-                None => UnexpectedEnd(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
+                None => UnexpectedEnd(vec![$($crate::token::TokenValue::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
                 Some((i, token)) => {
                    match token.value() {
                    $( $expected_input => $next_state, )*
-                   _ => UnexpectedToken(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*], i),
+                   _ => UnexpectedToken(vec![$($crate::token::TokenValue::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*], i),
                    }
                 }
             }
@@ -23,11 +23,11 @@ macro_rules! transition_peek {
     ($tokens:expr, $( $expected_input:pat => $next_state:expr ),* $(,)?) => {
         {
             match $tokens.peek() {
-                None => UnexpectedEnd(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
+                None => UnexpectedEnd(vec![$($crate::token::TokenValue::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
                 Some((i, token)) => {
                    match token.value() {
                     $( $expected_input => $next_state, )*
-                   _ => UnexpectedToken(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*], *i),
+                   _ => UnexpectedToken(vec![$($crate::token::TokenValue::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*], *i),
                    }
                 }
             }
@@ -42,7 +42,7 @@ macro_rules! transition_return_on_unexpected {
     ($tokens:expr, $value: expr, $( $expected_input:pat => $next_state:expr ),* $(,)?) => {
         {
             match $tokens.peek() {
-                None => UnexpectedEnd(vec![$($crate::token::Value::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
+                None => UnexpectedEnd(vec![$($crate::token::TokenValue::from_str(stringify!($expected_input)).unwrap_or_else(|invalid_token| panic!("BUG: Could not convert pattern {invalid_token} to token."))),*]),
                 Some((_, token)) => {
                    match token.value() {
                     $(

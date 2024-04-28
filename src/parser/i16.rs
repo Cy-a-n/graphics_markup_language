@@ -6,8 +6,8 @@ use crate::error_handling::ParsedType::U8;
 use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
-use crate::token::Value;
-use crate::token::Value::{Equals, Minus, One, Plus, Zero};
+use crate::token::TokenValue;
+use crate::token::TokenValue::{Equals, Minus, One, Plus, Zero};
 use std::iter::Enumerate;
 use std::str::FromStr;
 use std::{iter::Peekable, slice::Iter};
@@ -69,8 +69,8 @@ enum State {
     Digit12((i16, bool)),
     Digit13((i16, bool)),
     Return((i16, bool)),
-    UnexpectedEnd(Vec<Value>),
-    UnexpectedToken(Vec<Value>, usize),
+    UnexpectedEnd(Vec<TokenValue>),
+    UnexpectedToken(Vec<TokenValue>, usize),
 }
 
 impl State {
@@ -157,7 +157,7 @@ mod tests {
     use super::*;
     use crate::{
         error_handling::ParserError::{UnexpectedEnd, UnexpectedToken},
-        token::Value::RightBrace,
+        token::TokenValue::RightBrace,
     };
 
     #[test]

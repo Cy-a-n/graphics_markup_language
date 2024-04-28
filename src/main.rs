@@ -36,6 +36,8 @@ fn main() {
         exit(1);
     }
 
+    // The main part of the program takes place here.
+    // We first tokenize the input.
     let mut tokens = match lexer::to_tokens(&source_code) {
         Ok(t) => t,
         Err(error) => {
@@ -44,6 +46,7 @@ fn main() {
         }
     };
 
+    // Then we parse the output to simple polygons.
     let to_draw = match parser::parse(&mut tokens) {
         Ok(td) => td,
         Err(error) => {
@@ -52,6 +55,7 @@ fn main() {
         }
     };
 
+    // Lastly we transpile the polygons to svg.
     let svg = svg_transpiler::to_svg(to_draw);
 
     let mut output_file = match File::create(output_path) {

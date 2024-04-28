@@ -8,8 +8,8 @@ use crate::error_handling::ParsedType;
 use crate::error_handling::ParserError::UnexpectedEnd;
 use crate::error_handling::ParserError::UnexpectedToken;
 use crate::token::Token;
-use crate::token::Value;
-use crate::token::Value::{
+use crate::token::TokenValue;
+use crate::token::TokenValue::{
     Blue, Green, Red, Equals, RightBrace, LeftBrace,
 };
 use std::iter::Enumerate;
@@ -83,8 +83,8 @@ enum State {
     Blue(Color),
     BlueValue(Color),
     Return(Color),
-    UnexpectedEnd(Vec<Value>),
-    UnexpectedToken(Vec<Value>, usize),
+    UnexpectedEnd(Vec<TokenValue>),
+    UnexpectedToken(Vec<TokenValue>, usize),
 }
 
 impl State {
@@ -158,7 +158,7 @@ mod tests {
         },
         token::{
             Token,
-            Value::{ Equals, One, RightBrace, LeftBrace, Zero},
+            TokenValue::{ Equals, One, RightBrace, LeftBrace, Zero},
         },
     };
 

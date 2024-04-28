@@ -5,9 +5,10 @@ use strum_macros::Display;
 use self::Error::Parser;
 use self::ParserError::UnexpectedEnd;
 use crate::token::Token;
-use crate::token::Value;
+use crate::token::TokenValue;
 use colored::Colorize;
 
+/// A totally over-engineered error handler
 #[derive(Display, Debug, PartialEq)]
 pub enum Error<'a> {
     Parser(ParserError<'a>),
@@ -69,12 +70,12 @@ pub enum ParserError<'a> {
     UnexpectedEnd {
         parsed_type: ParsedType,
         current_value_slice: &'a [Token],
-        expected_tokens: Vec<Value>,
+        expected_tokens: Vec<TokenValue>,
     },
     UnexpectedToken {
         parsed_type: ParsedType,
         current_value_slice: &'a [Token],
-        expected_tokens: Vec<Value>,
+        expected_tokens: Vec<TokenValue>,
     },
 }
 
@@ -223,7 +224,7 @@ fn source_code_with_error(tokens: &[Token], error_token: &Token, error_message: 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::Value::*;
+    use crate::token::TokenValue::*;
 
     #[test]
     fn test_source_code_with_error() {

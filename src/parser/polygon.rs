@@ -11,8 +11,8 @@ use crate::error_handling::Error::Parser;
 use crate::error_handling::ParsedType;
 use crate::error_handling::ParserError::{UnexpectedEnd, UnexpectedToken};
 use crate::token::Token;
-use crate::token::Value;
-use crate::token::Value::{
+use crate::token::TokenValue;
+use crate::token::TokenValue::{
     BorderColor, Children, Equals, FillColor, LeftBrace, LeftBracket, Position, RightBrace,
     RightBracket, Rotation, Vertices, Width,
 };
@@ -45,6 +45,7 @@ impl Polygon {
         }
     }
 
+    /// This function constructs a polygon and all its children from the tokenized source code with a modified pushdown automata.
     #[allow(unused)]
     pub fn from_tokens<'a>(
         tokens_iter: &mut Peekable<Enumerate<Iter<Token>>>,
@@ -63,6 +64,7 @@ impl Polygon {
             };
             match state {
                 Return(mut value) => return Ok(value),
+                // Error states
                 UnexpectedEnd(expected_tokens) => {
                     return Err(Parser(UnexpectedEnd {
                         parsed_type: ParsedType::Polygon,
@@ -83,6 +85,7 @@ impl Polygon {
     }
 }
 
+/// Instead of a stack, we preserve information in the enum variants.
 #[derive(Debug)]
 enum State {
     Start,
@@ -104,8 +107,8 @@ enum State {
     Child(Polygon),
     ChildrenValue(Polygon),
     Return(Polygon),
-    UnexpectedEnd(Vec<Value>),
-    UnexpectedToken(Vec<Value>, usize),
+    UnexpectedEnd(Vec<TokenValue>),
+    UnexpectedToken(Vec<TokenValue>, usize),
 }
 
 impl State {
@@ -125,6 +128,8 @@ impl State {
                 Rotation => {tokens_iter.next(); State::Rotation(Polygon::default())},
                 LeftBrace => {
                     let mut value = Polygon::default();
+                    // Common operations like parsing points, colors, numbers, etc. are abstracted away to their own automata similar to this one.
+                    // However, I don't bother to comment them, hopefully they are self-explanatory. 
                     value.position = match Point::from_token(tokens_iter, tokens) {
                         Ok(value) => value,
                         Err(error) => return Err(error),
@@ -238,7 +243,7 @@ mod tests {
         },
         token::{
             Token,
-            Value::{
+            TokenValue::{
                 Blue, BorderColor, Equals, FillColor, Green, LeftBrace, LeftBracket, One, Position,
                 Red, RightBrace, RightBracket, Rotation, Vertices, Width, Zero, X, Y,
             },
