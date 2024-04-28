@@ -20,9 +20,9 @@ The Graphics Markup Language (GCML) is a lightweight markup language designed fo
 The syntax of the language can be described by a context-free grammar:
 
 D => 0 | 1  
-S = + | -
-U8 => = D | = DD | = DD | = DDD | = DDDD | = DDDDD | = DDDDDD | = DDDDDDD | = DDDDDDDD  
-I16 => = S D | = S DD | = S DD | = S DDD | = S DDDD | = S DDDDD | = S DDDDDD | = S DDDDDDD | = S DDDDDDDD | = S DDDDDDDDD | = S DDDDDDDDDD | = S DDDDDDDDDDD | = S DDDDDDDDDDDD | = S DDDDDDDDDDDDD | = S DDDDDDDDDDDDDD | = S DDDDDDDDDDDDDDD  
+S = + | -  
+U8 => = D | = DD | = DD | = DDD | = DDDD | = DDDDD | = DDDDDD | = DDDDDDD | = DDDDDDDD   
+I16 => = S D | = S DD | = S DD | = S DDD | = S DDDD | = S DDDDD | = S DDDDDD | = S DDDDDDD | = S DDDDDDDD | = S DDDDDDDDD | = S DDDDDDDDDD | = S DDDDDDDDDDD | = S  DDDDDDDDDDDD | = S DDDDDDDDDDDDD | = S DDDDDDDDDDDDDD | = S DDDDDDDDDDDDDDD   
 Y => y | y I16  
 X => x | x I16  
 Point => { X Y }  
